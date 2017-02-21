@@ -1,0 +1,166 @@
+<layout name='Layout/ace_layout' />
+<form method="post" name="form_adv_search" id="form_adv_search">
+	<div class="adv_search panel panel-default "  id="adv_search">
+		<div class="panel-body">
+			<div class="col-sm-3">
+				<label class="col-sm-4 control-label" for="">部门：</label>
+				<div class="col-sm-8">
+					<input class="form-control input-sm" type="text" id="dept_name_multi" name="dept_name_multi" onfocus="$('.content0').show()" readonly>
+					<input type="hidden" id="dept_name_multi_data" name="dept_name_multi_data"/>
+					<div class="content0"> 
+						<div class="top2">
+					        <span class="top_s1">部门选择</span>
+					        <span class="top_s2" id="gb">【关闭】</span>
+					        <span class="top_s2" id="qk">【清空】</span>
+					    </div>
+					    <div class="ss">
+					        <input class="ss_inp1" type="search"/>
+					        <span class="ss_inp2">
+					            <img src="./Public/img/left1.png"/>
+					        </span>
+					    </div>
+						<div class="content1">
+							{$dept_list_new}
+				    	</div>
+					    <div class="bottom2">
+					    	<span class="bottom_s1" id="qd">确定</span>
+					        <span class="bottom_s2" id="qx">取消</span>
+					    </div>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<label class="col-sm-4 control-label" for="dept_id_1">岗位：</label>
+				<div class="col-sm-8">
+					<input class="form-control input-sm" type="text" id="pos_name_multi" name="pos_name_multi" onfocus="$('.content00').show()" readonly>
+					<input type="hidden" id="pos_name_multi_data" name="pos_name_multi_data"/>
+					<div class="content00"> 
+						<div class="top2">
+					        <span class="top_s1">岗位选择</span>
+					        <span class="top_s2" id="gb2">【关闭】</span>
+					        <span class="top_s2" id="qk2">【清空】</span>
+					    </div>
+					    <div class="ss">
+					        <input class="ss_inp1" type="search"/>
+					        <span class="ss_inp2">
+					            <img src="./Public/img/left1.png"/>
+					        </span>
+					    </div>
+					    <div class="content2">
+				    	</div>
+					    <div class="bottom2">
+					    	<span class="bottom_s1" id="qd2">确定</span>
+					        <span class="bottom_s2" id="qx2">取消</span>
+					    </div>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<label class="col-sm-4 control-label" for="eq_user_id">申请人：</label>
+				<div class="col-sm-8">
+					<input  class="form-control" type="text" id="li_user_name" name="li_user_name" >
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<a  class="btn btn-sm btn-info" onclick="submit_adv_search();">搜索</a>
+			</div>
+		</div>
+	</div>
+</form>
+<div class="operate panel panel-default">
+	<div class="panel-body" style="background: #BDD3DF;padding: 3px;">
+		<div class="pull-left">
+			<span style="font-weight: bold;color: #000;font-size: 16px;display: block;line-height: 35px;margin-left: 10px;">{$flow_name['name']}</span>
+		</div>
+		<div class="pull-right">
+			<a class="btn btn-sm btn-primary" href="{:U('add','type='.$flow_name['id'])}" onclick="add()">新建</a>
+			<a class="btn btn-sm btn-primary" onclick="export_excel()">导出</a>
+		</div>
+	</div>
+</div>
+<div class="ul_table">
+	<ul>
+		<li class="thead" style="padding-left:10px">
+			<div class="pull-left">
+				<span class="col-10 ">编号</span>
+				<span class="col-16 ">申请时间</span>	
+				<span class="col-10 ">部门</span>	
+				<span class="col-10 ">岗位</span>	
+				<span class="col-10 ">申请人</span>				
+			</div>
+			<div class="pull-right">
+				<span class="col-6  ">审批状态</span>
+				<span class="col-6  ">操作</span>
+			</div>
+			<div class="autocut auto">
+				标题
+			</div>
+		</li>
+	</ul>
+	<empty name="list">
+		<ul>
+			<li class="no-data">
+				没找到数据
+			</li>
+		</ul>
+		<else/>
+		<form method="post" action="" name="form_data" id="form_data">
+			<ul>
+				<foreach name="list" item="vo">
+					<li class="tbody">
+						<div class="pull-left">
+							<span class="col-10 ">&nbsp;{$flow_ext.$key.flow_no}</span>
+							<span class="col-16  ">&nbsp;{$vo.create_time|date='Y-m-d H:i:s',###}</span>
+							<span class="col-10 ">&nbsp;{$vo.dept_name}</span>	
+							<span class="col-10 ">&nbsp;{$flow_ext.$key.pos_name}</span>
+							<span class="col-10 ">&nbsp;{$vo.user_name}</span>
+						</div>
+						<div class="pull-right">
+							<span class="col-6  ">&nbsp;{$vo.step|show_step}</span>
+							<span class="col-6  "><if condition="($vo.step eq '10')"><a href="{:U('edit','id='.$vo['id'].'&fid=darft')}">修改</a><a href="{:U('del','id='.$vo['id'])}">删除</a></if></span>
+						</div>
+						<div class="autocut auto">
+							<if condition="($vo.step eq '10')">
+								{$vo.name}
+								<eq name="vo.name|strlen" value="0">
+									无标题
+								</eq>
+							<elseif  condition="($vo.user_id eq $user_id or $auth['admin'] eq true)"/>
+								<a href="{:U('read','id='.$vo['id'].'&fid=submit')}" target="_blank">{$vo.name}
+								<eq name="vo.name|strlen" value="0">
+									无标题
+								</eq>
+								</a> 
+							<else/>
+								<a href="{:U('read','id='.$vo['id'].'&fid=confirm')}" target="_blank">{$vo.name}
+								<eq name="vo.name|strlen" value="0">
+									无标题
+								</eq>
+								</a> 
+							</if>
+						</div>
+					</li>
+				</foreach>
+			</ul>
+		</form>
+		<div class="pagination">
+			{$page}
+		</div>
+	</empty>
+</div>
+<input type="hidden" id="name" name="name" value="{$flow_name.name}">
+
+<script type="text/javascript">
+
+$(function() {
+	//alert($("#name").val());
+	if($("#name").val() == '私车公用申请' || $("#name").val() == '公交卡使用申请'){
+		var html = "<li>行政管理</li><li>物业管理</li><li>{$flow_name['name']}</li>";
+		$("#breadcrumbs ul").append(html);
+	}else{
+		var html = "<li>行政管理</li><li>{$flow_name['name']}</li>";
+		$("#breadcrumbs ul").append(html);
+	}
+	
+});
+</script>

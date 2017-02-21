@@ -1,0 +1,136 @@
+<layout name='Layout/ace_layout' />
+<style>
+.form-control-static{line-height: 8;font-weight: bold;}
+.ul_table .rr .tbody{background-color:#f1f5fa;}
+</style>
+<!-- <div class="operate panel panel-default">
+		<div class="panel-body">
+			<div class="pull-left">
+				<div class="btn-group">
+					<a class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> 管理 <b class="fa fa-caret-down"></b></a>
+					<ul class="dropdown-menu">
+						<li>
+							<a onclick="import_monthly_report();">导入</a>
+						</li>
+						<li>
+							<a onclick="export_monthly_report();">导出模板</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div> -->
+<form method='post' id="form_data" name="form_data" enctype="multipart/form-data"   class="form-horizontal">
+	<input type="hidden" id="ajax" name="ajax" value="0">
+	<input type="hidden" id="id" name="id" value="{$id}">
+	<input type="hidden" id="add_file" name="add_file">
+	<input type="hidden" id="opmode" name="opmode" value="add">
+	<input type="hidden" id="is_submit" name="is_submit">
+	<div class="ul_table border-bottom">
+		<ul>
+			<li class="thead">
+				<div class="col-sm-3"></div>
+				<div class="col-sm-6 text-center">
+					<select name="work_date">
+						{:fill_option($work_date_list)}
+					</select>
+					工作月报
+				</div>
+			</li>
+			<div style="overflow: hidden;width: 100%;">
+			<div style="float: left;width: 10%;height: 563px;background-color: #f1f5fa;">
+				<span style="text-align: center;display: block;width: 12px;height: 108px;margin: auto;margin-top: 200px;line-height: 2;font-weight: bold;">本月工作总结</span>
+			</div>
+			<div class="rr" style="float: left;width: 90%;">
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						已完成工作：
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="done" class="form-control" style="height:120px;" check="require" msg="请填写已完成工作"></textarea>
+				</div>
+			</li>
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						未完成工作：
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="undoo" class="form-control" style="height:120px;"></textarea>
+				</div>
+			</li>
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						突出业绩：
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="achievement" class="form-control" style="height:120px;"></textarea>
+				</div>
+			</li>
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						问题及难点：
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="problem" class="form-control" style="height:120px;"></textarea>
+				</div>
+			</li>
+			</div>
+			</div>
+		</ul>
+	</div>
+	<div class="ul_table border-bottom">
+		<ul class="rr">
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						工作心得：
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="content" class="form-control" style="height:120px;"></textarea>
+				</div>
+			</li>
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						下月工作计划:
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="plan" class="form-control" style="height:120px;" check="require" msg="请填写下月工作计划"></textarea>
+				</div>
+			</li>
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						意见或建议:
+					</p></span>
+				<div class="col-sm-10">
+					<textarea name="suggest" class="form-control" style="height:120px;"></textarea>
+				</div>
+			</li>
+			<li class="tbody">
+				<span class="col-sm-2">
+					<p class="form-control-static text-center">
+						附件：
+					</p></span>
+				<div class="col-sm-10">
+					{:W('File',array('add_file'=>$vo['add_file'],'mode'=>'add'))}
+				</div>
+			</li>
+		</ul>
+	</div>
+	<div class="action text-center">
+		<input class="btn btn-sm btn-primary" type="button" value="临时保存" onclick="save(0);">
+		<input class="btn btn-sm btn-primary" type="button" value="提交月报" onclick="save(1);">
+		<input class="btn btn-sm btn-default" type="button" value="取消" onclick="go_return_url();">
+	</div>
+</form>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>个人中心</li><li><a href='{:U("monthly_report/index")}'>我的月报</a></li><li>新建</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

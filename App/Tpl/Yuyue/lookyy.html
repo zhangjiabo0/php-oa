@@ -1,0 +1,122 @@
+<layout name='Layout/ace_layout' />
+{:W('PageHeader',array('name'=>'查看预定详情','search'=>'N'))}
+	<form method='post' id="form_data" name="form_data" enctype="multipart/form-data"   class="well form-horizontal">
+			<input type="hidden" name="opmode" id="opmode" value="add">
+			<input type="hidden" name="create_time" id="create_time">
+			<input type="hidden" name="takes_id" id="takes_id">
+			<input type="hidden" name="date_section" id="date_section">
+			<input type="hidden" name="time_section" id="time_section">
+			<input type="hidden" id="ajax" name="ajax" value="0">
+			<input type="hidden" id="meet_id" name="meet_id" value="{$id}">
+			<input type="hidden" id="user_id" name="user_id" value="{:get_user_id()}">
+			<table class="table table-bordered" >
+				<tr>
+					<th class="col-10">
+					<nobr>
+						申请时间
+					</nobr></th>
+					<td class="col-20">
+					<input class="form-control" type="text" id="create_time" name="time" value="{$vo.create_time|date='Y-m-d H:i:s',###}" readonly="readonly">
+					</td>
+					<th  class="col-5">申请人*</th>
+					<td class="col-20">
+					<input  class="form-control" type="text" id="proposer" name="proposer" value="{$vo.proposer}" readonly="readonly" check="require" msg="请输入申请人">
+					</td>
+				</tr>
+				<tr>
+					<th>公司</th>
+					<td >
+						<input  class="form-control" type="text" id="company" name="company" readonly="readonly" value="{$vo.company}">
+					</td>
+					<th>部门</th>
+					<td>
+						<input  class="form-control" type="text" id="dept" name="dept" readonly="readonly" value="{$vo.dept}">
+					</td>
+				</tr>
+				<tr>
+					<th>岗位</th>
+					<td class="col-20">
+						<input  class="form-control" type="text" id="post" name="post" value="{$vo.post}" readonly="readonly">
+					</td>
+					<th>会议室</th>
+					<td>
+						<input  class="form-control" type="text" id="meet_room" name="meet_room" value="{$meet.meet_name}" readonly="readonly">
+					</td>
+				</tr>
+				<tr>
+					<th class="col-10">会议室主题*</th>
+					<td colspan="3">
+						<input  class="form-control" type="text" id="theme" name="theme" check="require" msg="请输入会议主题" value="{$vo.theme}">
+					</td>
+				</tr>
+				<tr>
+					<th>
+					<nobr>
+						会议日期*
+					</nobr></th>
+					<td colspan="3">
+						<input class="form-control" type="text" id="start_time" name="start_time" readonly="readonly" msg="{$time_frame}" value="{$vo.date_section}">
+					</td>
+				</tr>
+				<tr>
+					<th>参会人员*</th>
+					<td colspan="3">
+						<div id="recever" class="inputbox">
+							<a class="pull-right btn btn-link text-center" onclick="popup_contact();"> <i class="fa fa-user"></i> </a>
+							<div class="wrap" >
+								<span class="address_list">
+								<volist name="per" id="p">
+									{:conv_inputbox($p['name'],$p['id'])}
+								</volist>
+								</span>
+								<span class="text" >
+									<input class="letter" type="text"  >
+								</span>
+							</div>
+							<div class="search dropdown ">
+								<ul class="dropdown-menu"></ul>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>会议时间段*</th>
+					<td colspan="3">
+						<div class="contain">
+						<volist id="vo" name="new">
+							<span class="time_section {$vo['color']}">{$vo['time']}</span>
+						</volist>
+						</div>
+					</td>
+				</tr>
+				<tr> 
+					<td colspan="4">
+						<input type="button" class="btn btn-sm btn-default" value="返回" onclick="go_return_url();"/>
+					</td>
+					
+				</tr>
+			</table>
+		</form>
+		<b>带*的为必填选项</b>
+	</div>
+<style type="text/css">
+	.time_section{
+		display: block;
+		height: 30px;
+		width: 100px;
+		line-height: 30px;
+		text-align: center;
+		float: left;
+		border: 1px solid #ccc;
+	}
+	.booked{
+		background: #03fbc1;
+		color: #fff;
+	}
+</style>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>行政管理</li><li>会议室管理</li><li><a href='{:U("yuyue/index")}'>预约列表</a></li><li>查看</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

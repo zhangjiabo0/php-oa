@@ -1,0 +1,9 @@
+<script type="text/javascript">
+	function save() {
+		if (check_form("form_data")) {
+			sendAjax("{:U('save_simple_data_mapping')}",$("#form_data").serialize(),function(){
+				myclose2();
+			});
+		}
+	}
+</script>

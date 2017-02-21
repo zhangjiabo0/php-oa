@@ -1,0 +1,17 @@
+<script type="text/javascript">
+	function add() {
+		window.open("{:U('add_store_problem')}", "_self");
+	}
+	$(document).ready(function() {
+		set_return_url();
+	});
+	function export_store_problem_report() {
+		window.open("{:U('export_store_problem_report')}", "_blank");
+		return false;
+	}
+
+	function import_store_problem_report() {
+		window.open("{:U('import_store_problem_report')}", "_self");
+		return false;
+	}
+</script>

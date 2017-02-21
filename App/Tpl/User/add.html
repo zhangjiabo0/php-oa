@@ -1,0 +1,132 @@
+<layout name='Layout/ace_layout' />
+	<select name="dept_list" id="dept_list" class="hidden">
+		{:fill_option($dept_list)}
+	</select>
+	<div class="popup-header clearfix">
+		<div class="pull-left">
+			<h1>添加员工</h1>
+		</div>
+	</div>
+	<div class="popup-body" style="overflow-y: auto;">
+		<!--<form method='post' id="form_data" name="form_data" enctype="multipart/form-data"   class="well form-horizontal">
+		--><form id="form_data" name="form_data" method="post" action="{:U('addUserInfo')}" class="form-horizontal" enctype="multipart/form-data" onSubmit="return check_form('form_data');">
+			<input type="hidden" name="opmode" id="opmode" value="new">
+			<table class="table table-bordered" >
+				<tr>
+					<th class="col-10">
+					<nobr>
+						用户名*
+					</nobr></th>
+					<td class="col-20">
+					<input class="form-control" type="text" id="emp_no" name="emp_no"  check="require" msg="请输入用户名">
+					</td>
+					<th  class="col-5">姓名*</th>
+					<td class="col-20">
+					<input  class="form-control" type="text" id="name" name="name" class="input-sm" check="require" msg="请输入姓名">
+					</td>
+
+				</tr>
+				
+				<tr>
+					<th>性别</th>
+					<td >
+					<select name="sex" id="sex" class="form-control col-10">
+						<option  value="male">男</option>
+						<option value="female">女</option>
+					</select></td>
+					<th>生日*</th>
+					<td style="position: relative" >
+						<input type="text" id="birthday" name="birthday" readonly="readonly" class="input-date form-control" data-date-format="yyyy-mm-dd" msg="请选择生日" check="require">
+					</td>
+				</tr>
+				<tr>
+					<th>部门*</th>
+					<td class="col-20">
+					<div class="input-group ">
+						<input class="form-control" name="dept_name"  id="dept_name" type="text" msg="请选择部门" check="require" readonly="readonly" />
+						<input name="dept_id" id="dept_id" type="hidden" msg="请选择部门" check="require" />
+						<div class="input-group-btn">
+							<a class="btn btn-sm btn-primary" onclick="select_dept();" > <i class="fa fa-search" ></i> </a>
+						</div>
+					</div></td>
+					<th>位置*</th>
+					<td colspan="2">
+					<div class="input-group ">
+						<input class="form-control" name="pos_name"  id="pos_name" type="text" msg="请选择位置" check="require" readonly="readonly" />
+						<input name="pos_id" id="pos_id" type="hidden" msg="请选择位置" check="require" />
+						<div class="input-group-btn">
+							<a class="btn btn-sm btn-primary" onclick="select_dept3();" > <i class="fa fa-search" ></i> </a>
+						</div>
+					</div></td>
+				</tr>
+				<tr>
+					<th class="col-10">职级*</th>
+					<td>
+					<select name="position_id" id="position_id" class="form-control" msg="请选择职位" check="require">
+						<option value="">选择职级</option>
+						{:fill_option($position_list)}
+					</select></td>
+					<!--<th>个人简历</th>
+					<td>
+						<div class="text-center">
+							<a class="file" href="javascript:;" class="btn btn-sm btn-primary">
+								<input type="file" name="resume" class=""/>	
+							</a>
+						</div>
+					</td>
+				-->
+					<th><nobr>
+						职位*
+					</nobr></th>
+					<td colspan="3">
+					<input type="text" id="duty" name="duty" class="form-control" check="require" msg="请输入职位">
+					</td>
+				</tr>
+				<tr>
+					<th>
+					<nobr>
+						办公室电话
+					</nobr></th>
+					<td>
+					<input type="text" id="office_tel" name="office_tel" class="form-control">
+					</td>
+					<th>
+					<nobr>
+						移动电话*
+					</nobr></th>
+					<td>
+					<input type="text" id="mobile_tel" name="mobile_tel" class="form-control" check="require" msg="请输入移动电话">
+					</td>
+				</tr>
+				<tr>
+					<th>电子邮箱</th>
+					<td>
+					<input type="text" id="email" name="email" class="form-control">
+					</td>
+					<th>是否关联账号</th>
+					<td>
+					<select class="form-control col-10"  name="more_role" id="is_del" onchange="moreRole();" style="float:left;">
+						<option  value="0">不是</option>
+						<option value="1">是</option>
+					</select>
+					<input type="text" id="more_zh" name="more_zh" class="input-sm display-none" style="float:left;margin-left: 10px;" placeholder="请输入主账号的用户名" onchange="check($(this).val())">
+					<input type="hidden" name="pid_uid" id="pid_uid" value="0"/>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="4">
+						<input type="button" onclick="save()" class="btn btn-sm btn-primary" value="新增"/>
+						<input  class="btn btn-sm btn-default" type="button" value="取消" onclick="go_return_url();">
+					</td>
+				</tr>
+			</table>
+		</form>
+		<b>带*的为必填选项</b>
+	</div>
+	</div>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>系统管理</li><li>公司信息管理</li><li><a href='{:U("User/index")}'>员工登记</a></li><li>新建</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

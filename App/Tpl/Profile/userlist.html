@@ -1,0 +1,136 @@
+<layout name='Layout/ace_layout' />
+<form method="post" name="form_adv_search" id="form_adv_search">
+	<div class="adv_search panel panel-default "  id="adv_search">
+		<div class="panel-body">
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="">部门：</label>
+				<div class="col-sm-8">
+					<input class="form-control input-sm" type="text" id="dept_name_multi" name="dept_name_multi" onfocus="$('.content0').show()" readonly>
+					<input type="hidden" id="dept_name_multi_data" name="dept_name_multi_data"/>
+					<div class="content0"> 
+						<div class="top2">
+					        <span class="top_s1">部门选择</span>
+					        <span class="top_s2" id="gb">【关闭】</span>
+					        <span class="top_s2" id="qk">【清空】</span>
+					    </div>
+					    <div class="ss">
+					        <input class="ss_inp1" type="search"/>
+					        <span class="ss_inp2">
+					            <img src="./Public/img/left1.png"/>
+					        </span>
+					    </div>
+						<div class="content1">
+							{$dept_list_new}
+				    	</div>
+					    <div class="bottom2">
+					    	<span class="bottom_s1" id="qd">确定</span>
+					        <span class="bottom_s2" id="qx">取消</span>
+					    </div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="dept_id_1">岗位：</label>
+				<div class="col-sm-8">
+					<input class="form-control input-sm" type="text" id="pos_name_multi" name="pos_name_multi" onfocus="$('.content00').show()" readonly>
+					<input type="hidden" id="pos_name_multi_data" name="pos_name_multi_data"/>
+					<div class="content00"> 
+						<div class="top2">
+					        <span class="top_s1">岗位选择</span>
+					        <span class="top_s2" id="gb2">【关闭】</span>
+					        <span class="top_s2" id="qk2">【清空】</span>
+					    </div>
+					    <div class="ss">
+					        <input class="ss_inp1" type="search"/>
+					        <span class="ss_inp2">
+					            <img src="./Public/img/left1.png"/>
+					        </span>
+					    </div>
+					    <div class="content2">
+				    	</div>
+					    <div class="bottom2">
+					    	<span class="bottom_s1" id="qd2">确定</span>
+					        <span class="bottom_s2" id="qx2">取消</span>
+					    </div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="li_name">姓名：</label>
+				<div class="col-sm-8">
+					<input  class="form-control" type="text" id="li_name" name="li_name" >
+				</div>
+			</div>
+			
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="is_del">状态：</label>
+				<div class="col-sm-8">
+					<select class="form-control" name="is_del" id="is_del">
+						<option value="">选择状态</option>
+						<option value="0">启用</option>
+						<option value="1">禁用</option>
+					</select>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<a  class="btn btn-sm btn-info" onclick="submit_adv_search();">搜索</a>
+			</div>
+		</div>
+	</div>
+</form>
+<div class="operate panel panel-default">
+	<div class="panel-body" style="background: #BDD3DF;padding: 3px;">
+		<div class="pull-left">
+			<span style="font-weight: bold;color: #000;font-size: 16px;display: block;line-height: 35px;margin-left: 10px;">员工档案管理</span>
+		</div>
+		<div class="pull-right">
+		</div>
+	</div>
+</div>
+<div class="ul_table">
+	<ul>
+		<li class="thead">
+			<div class="pull-left">
+				<span class="col-10 ">序列</span>
+				<span class="col-10 ">姓名</span>
+			</div>
+			<div class="pull-right">
+				<span class="col-20 autocut">部门</span>
+				<span class="col-20">岗位</span>
+				<span class="col-10 ">是否关联账号</span>
+				<span class="col-10 ">状态</span>
+			</div>
+		</li>
+		<empty name="list">
+			<li class="no-data">
+				没找到数据
+			</li>
+			<else/>
+			<foreach name="list" item="vo">
+				<li class="tbody">
+					<div class="pull-left">
+						<span class="col-10 ">{$vo.id}</span>
+						<span class="col-10 "><a href="{:U('user','id='.$vo['id'])}" target="_blank">{$vo.name}</a></span>
+					</div>
+
+					<div class="pull-right">
+						<span class="col-20 autocut">&nbsp;{$vo.dept_name}</span>
+						<span class="col-20">&nbsp;{$users_extension.$key.pos_name}</span>
+						<span class="col-10">&nbsp;{$users_extension.$key.more_role}</span>
+						<span class="col-10">&nbsp;{$vo.is_del|user_status}</span>
+					</div>
+				</li>
+			</foreach>
+			<div class="pagination">
+				{$page}
+			</div>
+		</empty>
+	</ul>
+</div>
+    <script type="text/javascript">
+$(function() {
+	var html = "<li>档案中心</li><li>员工档案管理</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

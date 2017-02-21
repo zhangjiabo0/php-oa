@@ -1,0 +1,54 @@
+<layout name='Layout/ace_layout' />
+<div class="operate panel panel-default">
+	<div class="panel-body" style="background: #BDD3DF;padding: 3px;">
+		<div class="pull-left">
+			<span style="font-weight: bold;color: #000;font-size: 16px;display: block;line-height: 35px;margin-left: 10px;">意见箱</span>
+		</div>
+		<div class="pull-right">
+			<a  onclick="add();" class="btn btn-sm btn-primary" >新建</a>
+		</div>
+	</div>
+</div>
+<div class="ul_table">
+	<ul>
+		<li class="thead">
+			<div class="pull-left">
+				<span class="col-10 ">发起人</span>
+			</div>
+			<div class="pull-right">
+				<span class="col-15 ">时间</span>
+			</div>
+			<div class="auto autocut">
+				标题
+			</div>
+		</li>
+		<empty name="list">
+			<li class="no-data">
+				没找到数据
+			</li>
+			<else/>
+			<foreach name="list" item="vo">
+				<li class="tbody <php> if(($res[$key]['is_read'] == 0)&&($vo['create_time']>=time()-3600*30*24)) echo("bold")</php>">
+					<div class="pull-left">
+						<span class="col-10 ">{$res[$key].anony}</span>
+					</div>
+					<div class="pull-right">
+						<span class="col-15 ">{$vo.create_time|date='Y-m-d',###}</span>
+					</div>
+					<div class="auto autocut">
+						<a href="{:U('read','id='.$vo['id'])}">{$vo.title}</a>
+					</div>
+				</li>
+			</foreach>
+			<div class="pagination">
+				{$page}
+			</div>
+		</empty>
+	</ul>
+</div>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>个人中心</li><li>意见箱</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

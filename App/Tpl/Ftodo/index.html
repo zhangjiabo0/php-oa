@@ -1,0 +1,165 @@
+<layout name='Layout/ace_layout' />
+{:W('PageHeader',array('name'=>'等待我接受的任务','search'=>'N'))}
+<div class="ul_table">
+	<ul>
+		<li class="thead">
+			<div class="pull-left">
+				<span class="col-10 ">编号</span>
+				<span class="col-10 ">发起人</span>
+			</div>
+			<div class="pull-right">
+				<span class="col-20 autocut">分配给</span>
+				<span class="col-15">期望完成时间</span>
+				<span class="col-10 ">状态</span>
+			</div>
+			<div class="auto autocut">
+				标题
+			</div>
+		</li>
+		<empty name="list">
+			<li class="no-data">
+				没找到数据
+			</li>
+			<else/>
+			<foreach name="list" item="vo">
+				<li class="tbody">
+					<div class="pull-left">
+						<span class="col-10 ">{$vo.task_no}</span>
+						<span class="col-10 ">{$vo.user_name}</span>
+					</div>
+
+					<div class="pull-right">
+						<span class="col-20 autocut">&nbsp;{$vo.executor|show_contact}</span>
+						<span class="col-15">&nbsp;{$vo.expected_time}</span>
+						<span class="col-10">&nbsp;{$task_extension[$key].status|task_status}</span>
+					</div>
+					<div class="auto autocut">
+						<a target="_blank" href="{:U('Task/read','id='.$vo['id'])}">{$vo.name}</a>
+					</div>
+				</li>
+			</foreach>
+			<div class="pagination">
+				{$page}
+			</div>
+		</empty>
+	</ul>
+</div>
+{:W('PageHeader',array('name'=>'审批代办','search'=>'N'))}
+<div class="ul_table">
+	<ul>
+		<li class="thead" style="padding-left:10px">
+			<div class="pull-left">
+				<span class="col-16 ">编号</span>
+				<span class="col-16 ">类型</span>				
+			</div>
+			<div class="pull-right">
+				<span  class="col-9  ">登录时间</span>
+				<span  class="col-6  "> 发起人</span>
+				<span class="col-6  ">状态</span>
+				<span class="col-30  ">流程</span>
+			</div>
+			<div class="autocut auto">
+				标题
+			</div>
+		</li>
+	</ul>
+	<empty name="lists">
+		<ul>
+			<li class="no-data">
+				没找到数据
+			</li>
+		</ul>
+		<else/>
+		<form method="post" action="" name="form_data" id="form_data">
+			<ul>
+				<foreach name="lists" item="vo">
+					<li class="tbody">
+						<div class="pull-left">
+							<span class="col-16 ">{$vo.doc_no}</span>
+							<span class="col-16  "> {$vo.type_name}</span>
+						</div>
+						<div class="pull-right">
+							<span class="col-9" style="height:20px;">{$vo.create_time|toDate='Y-m-d'}</span>
+							<span class="col-6" style="height:20px;">{$vo.user_name}</span>
+							<span class="col-6" style="height:20px;">{$vo.step|show_step}</span>
+							<span class="col-30" style="height:20px;">{$vo.flow_name}</span>
+						</div>
+						<div class="autocut auto">
+							<if condition="$vo.flag eq '1'" >
+								<a target="_blank" href="{:U('notice/read','id='.$vo['id'].'&fid='.$folder)}">{$vo.name}</a>
+								<else/>
+								<a target="_blank" href="{:U('flow/read','id='.$vo['id'].'&fid='.$folder)}">{$vo.name}</a>
+							</if>
+							<eq name="vo.name|strlen" value="0">
+								无标题
+							</eq></a> 
+						</div>
+					</li>
+				</foreach>
+			</ul>
+		</form>
+		<div class="pagination">
+			{$pages}
+		</div>
+	</empty>
+</div>
+{:W('PageHeader',array('name'=>'ERP问题反馈','search'=>'N'))}
+<div class="ul_table">
+	<ul>
+		<li class="thead">
+			<div class="pull-left">
+				<span class="col-10">问题编号</span>
+				<span class="col-20">提交时间</span>
+				<span class="col-10">提交人</span>
+				<span class="col-10">部门</span>
+				<span class="col-10">岗位</span>
+				<span class="col-10">紧急程度</span>
+				<span class="col-10">标题</span>
+			</div>
+			<div class="pull-right">
+				<span class="col-10">类型</span>
+				<span class="col-10">状态</span>
+				<span class="col-10">处理人</span>
+			</div>
+		</li>
+		<empty name="problem_feedback_remind">
+			<li class="no-data">
+				没找到数据
+			</li>
+			<else/>
+			<foreach name="problem_feedback_remind" item="vo">
+				<li class="tbody">
+					<div class="pull-left">
+						<span class="col-10">{$vo.problem_no}&nbsp;</span>
+						<span class="col-20">{$vo.create_time|date='Y-m-d H:i:s',###}&nbsp;</span>
+						<span class="col-10">{$vo.create_user_name}&nbsp;</span>
+						<span class="col-10">{$vo.dept_name}&nbsp;</span>
+						<span class="col-10">{$vo.pos_name}&nbsp;</span>
+						<span class="col-10">{$vo.emergency|show_mapping}&nbsp;</span>
+						<if condition="($vo['type'] eq '1')">
+							<span class="col-10"><a href="{:U('problem_feedback/edit','id='.$vo['problem_feedback_id'])}" target="_blank">{$vo.title}&nbsp;</a></span>
+						<else/>
+							<span class="col-10"><a href="{:U('problem_feedback/read','id='.$vo['problem_feedback_id'])}" target="_blank">{$vo.title}&nbsp;</a></span>
+						</if>
+						
+	
+					</div>
+					<div class="pull-right">
+						<span class="col-10">{$vo.type|show_mapping}&nbsp;</span>
+						<span class="col-10" style="color:{$vo.status|show_mapping|show_status_color}">{$vo.status|show_mapping}&nbsp;</span>
+						<span class="col-10">{$vo.deal_user_name}&nbsp;</span>
+					</div>
+				</li>
+			</foreach>
+			<div class="pagination">
+				{$page}
+			</div>
+		</empty>
+	</ul>
+</div>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>个人中心</li><li>代办事项</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

@@ -1,0 +1,116 @@
+<layout name='Layout/ace_layout' />
+<form method="post" name="form_adv_search" id="form_adv_search">
+	<div class="adv_search panel panel-default "  id="adv_search">
+		<div class="panel-body">
+			<div class="col-sm-3">
+				<label class="col-sm-4 control-label" for="be_create">月份：</label>
+				<div class="col-sm-8">
+					<div class="input-group" >
+						<input type="text" class="input-date-m input-sm form-control text-center" name="be_create" />
+						<span class="input-group-addon">-</span>
+						<input type="text" class="input-date-m input-sm form-control text-center" name="en_create" />
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<label class="col-sm-4 control-label" for="li_content">部门：</label>
+				<div class="col-sm-8">
+					<select class="form-control" name="eq_base">
+							<option value="">选择部门</option>
+							{:fill_option($addr_list)};
+					</select>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<a  class="btn btn-sm btn-info" onclick="submit_adv_search();">搜索</a>
+			</div>
+		</div>
+	</div>
+</form>
+<div class="operate panel panel-default">
+	<div class="panel-body" style="background: #BDD3DF;padding: 3px;">
+		<div class="pull-left">
+			<span style="font-weight: bold;color: #000;font-size: 16px;display: block;line-height: 35px;margin-left: 10px;">到访客户池统计</span>
+		</div>
+		<div class="pull-right">
+			<a  class="btn btn-sm btn-primary" onclick="export_info();">导出</a>
+		</div>
+	</div>
+</div>
+<div style="width: 100%;height: auto;overflow: auto">
+				<ul class="right_ul">
+					<li class="title_li">
+						<span>序号</span>
+						<span>到访日期</span>
+						<span>招商方式</span>
+						<span>信息来源</span>
+						<span>招商人员</span>
+						<span>客户姓名</span>
+						<span>客户电话</span>
+						<span>主营行业</span>
+						<span>商家快递费用</span>
+						<span>预计日发单量</span>
+						<span>计划签约日期</span>
+						<span style="width: 170px;">客户最关心的问题</span>
+						<span style="width: 163px;">备注</span>	
+					</li>
+					<empty name="list">
+						<li class="no-data">
+							没找到数据
+						</li>
+					<else/>
+					<foreach name="list" item="vo">
+					<li>
+						<span>{$rows+$key}</span>
+						<span>{$vo.riqi}</span>
+						<span>{$vo.manner}</span>
+						<span>{$vo.source}</span>
+						<span>{$vo.person}</span>
+						<span>{$vo.client}</span>
+						<span><a title="{$vo.phone}">{$vo.phone}</a></span>
+						<span>{$vo.trade}</span>
+						<span>{$vo.cost}</span>
+						<span>{$vo.receipt}</span>
+						<span>{$vo.singed_date}</span>
+						<span style="width: 170px;"><a title="{$vo.concern}">{$vo.concern}</a></span>
+						<span style="width: 163px;"><a title="{$vo.remarks}">{$vo.remarks}</a></span>	
+					</li>
+			</foreach>
+		</empty>
+	</ul>
+</div>
+<div class="pagination">
+				{$page}
+			</div>
+<style>
+	.right_ul{
+		list-style:none;
+		width: 1640px;
+		height: auto;
+		clear: both;
+		border-top: 1px solid #000;
+		margin-left: 1px;
+	}
+	.title_li span{
+		background: #ccc;
+	}
+	.right_ul span{
+		border-bottom: 1px solid #000;
+	    border-right: 1px solid #000;
+	    border-left: 1px solid #000;
+	    display: block;
+	    float: left;
+	    height: 26px;
+	    line-height:26px;
+	    text-align: center;
+	    width: 120px;
+	    overflow: hidden;
+	    margin-left: -1px;
+	}
+</style>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>统计中心</li><li> 到访客户池统计</li>";
+	$("#breadcrumbs ul").append(html);
+});
+</script>

@@ -1,0 +1,48 @@
+<script src="__PUBLIC__/js/phpSerializer.js"></script>
+<script type="text/javascript">
+$("#eq_dept_id_0").change(function () {
+	var dept_id_0 = $(this).val();
+	$.ajax({
+		type:'get', 
+		url: "{:U('get_dept_child')}",
+		data:{dept_id_0:dept_id_0},
+		dataType: "json",
+		success: function(result){
+			$("#eq_dept_id_1").html('<option value="">选择岗位</option>'+result);
+		},
+		error:function(e){
+			$("#eq_dept_id_1").html('<option value="">选择岗位</option>');
+		}
+	});
+});
+$(document).ready(function() {
+	set_return_url();
+}); 
+
+function export_excel(){
+	line1 = '';
+	$(".thead .pull-left span").each(function(){
+		line1 += trim($(this).html())+'|';
+	});
+	line1 += trim($(".thead .autocut").html())+'|';
+	
+	$(".thead .pull-right span").each(function(){
+		line1 += trim($(this).html())+'|';
+	});
+	var type = {:I('get.type')};
+	var post = {$post};
+	var s = "";
+	s += "&type="+type;
+	s += "&export=1";
+	s += "&line1="+line1;
+	for ( var p in post ){
+		if(post[p]!='' && post[p]!='undefined'){
+			s += "&"+p+"="+post[p];
+		}
+	}
+	
+	var xx = './index.php?m=flow&a=getlist'+s;
+	window.open(xx, "_blank");
+	return false;
+}
+</script>

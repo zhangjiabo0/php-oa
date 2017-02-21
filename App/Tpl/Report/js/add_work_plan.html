@@ -1,0 +1,19 @@
+<script>
+	
+	function save() {
+		window.onbeforeunload=null;
+		if (check_form("form_data")) {
+			sendForm("form_data", "{:U('save_work_plan')}");
+		}
+	}
+	
+	function export_work_plan_report() {
+		window.open("{:U('export_work_plan_report')}", "_blank");
+		return false;
+	}
+
+	function import_work_plan_report() {
+		window.open("{:U('import_work_plan_report')}", "_self");
+		return false;
+	}
+</script>

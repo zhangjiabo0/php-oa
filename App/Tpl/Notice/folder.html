@@ -1,0 +1,214 @@
+<layout name='Layout/ace_layout' />
+<style>
+#follow_list{ width:500px; min-height: 150px; border: solid 4px #bdd3df; border-radius:20px; position:absolute; top:197px; background: #fff; display: none;}
+
+#follow_list span{ font-size: 14px; font-weight: bold; margin: 0 10px; line-height: 30px;}
+#follow_list p{ font-size: 14px; margin: 0 20px; line-height: 20px; border:1px solid #eaedf1; padding: 5px; border-radius: 10px;}
+#follow_list .div1{position: relative; width: 100%; height: 100%;}
+#follow_list .div2{ background:url(__PUBLIC__/img/rq_bt.png); height:36px; width:400px; border-radius:20px; color:#6b6a6a; font-size:16px; font-weight:bold; text-align:center; line-height:36px; position:absolute; top:-40px; left:-20px;}
+#follow_list .div3{ width:570px; margin-top:30px; margin-left:18px; overflow:auto;}
+</style>
+<form method="post" name="form_adv_search" id="form_adv_search">
+	<div class="adv_search panel panel-default "  id="adv_search">
+		<div class="panel-body">
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="eq_type">类型：</label>
+				<div class="col-sm-8">
+					<input type="radio" type="text" id="eq_type0" name="eq_type" value="1"/>文字
+					<input type="radio" type="text" id="eq_type1" name="eq_type" value="2"/>图片
+				</div>
+			</div>
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="li_name">标题：</label>
+				<div class="col-sm-8">
+					<input  class="form-control" type="text" id="li_name" name="li_name" >
+				</div>
+			</div>
+
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="li_content">内容：</label>
+				<div class="col-sm-8">
+					<input  class="form-control" type="text" id="li_content" name="li_content" >
+				</div>
+			</div>
+
+			<div class="form-group col-sm-3">
+				<label class="col-sm-4 control-label" for="eq_user_name">发布人：</label>
+				<div class="col-sm-8">
+					<input  class="form-control" type="text" id="eq_user_name" name="eq_user_name" >
+				</div>
+			</div>
+
+			<div class="col-sm-3">
+				<label class="col-sm-4 control-label" for="be_create_time">发布时间：</label>
+				<div class="col-sm-8">
+					<div class="input-daterange input-group" >
+					    <input type="text" class="input-sm form-control text-center" name="be_create_time" />
+						<span class="input-group-addon">-</span>
+						<input type="text" class="input-sm form-control text-center" name="en_create_time" />
+					</div>
+				</div>
+			</div>
+			<?php if($folder_id == '71'): ?>
+            <div class="form-group col-sm-3">
+                <label class="col-sm-4 control-label" for="eq_user_name">制度分类：</label>
+                <div class="col-sm-8">
+                    <select class="col-sm-10" name="li_system_classify" id="li_system_classify" check="require" msg="请选择制度分类">
+                    <option value="">请选择</option>
+                    <foreach name="sys_class" item="vo">
+                    <option value="{$vo.id}">{$vo.data_name}</option>
+                    </foreach>
+                    </select>
+                </div>
+            </div>
+            <?php endif;?>
+			<div class="col-sm-3" style="float:right; width:8%">
+					<a  class="btn btn-sm btn-info" onclick="submit_adv_search();">搜索</a>
+				</div>
+		</div>
+	</div>
+</form>
+
+	<div class="operate panel panel-default">
+		<div class="panel-body" style="background: #BDD3DF;padding: 3px;">
+		<div class="pull-left">
+			<span style="font-weight: bold;color: #000;font-size: 16px;display: block;line-height: 35px;margin-left: 10px;">{$folder_name}</span>
+		</div>
+			<div class="pull-right">
+				<if condition="$auth['admin']">
+					<a class="btn btn-sm btn-danger" onclick="mark('del');">删除</a>
+					<div class="btn-group" id="move_to">
+						<a class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" href="#" > 转移到 <span class="fa fa-caret-down"></span> </a>
+						<ul class="dropdown-menu">
+							{$folder_list}
+						</ul>
+					</div>
+				</if>
+				<div class="btn-group">
+					<a class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" href="#"> 标记为 <span class="fa fa-caret-down"></span> </a>
+					<ul class="dropdown-menu">
+						<li onclick="mark('readed');">
+							<a>已读</a>
+						</li>
+					</ul>
+				</div>
+			<if condition="$auth['write']">
+				<a class="btn btn-sm btn-primary" onclick="add()">新建</a>
+			</if>
+		</div>
+	</div>
+<div class="ul_table">
+	<ul>
+		<li class="thead">
+			<div class="pull-left">
+				<label class="inline pull-left col-3">
+					<input class="ace" type="checkbox" name="id-toggle-all" id="id-toggle-all" />
+					<span class="lbl"></span></label>
+				<span class="col-10"> 编号 </span>
+			</div>
+			<div class="pull-right">
+			<?php if($folder_id == '71'): ?>
+				<span class="col-6  "> 制度分类 </span>
+				<span class="col-10  "> 关注账户 (人)</span>
+			<?php endif;?>
+				<span class="col-10  "> 发布时间 </span>
+				<span class="col-6  "> 发布人 </span>			
+				<span class="col-6  "> 状态 </span>
+				<if condition="$spzt eq 1"><span class="col-6  "> 审批状态 </span></if>		
+			</div>
+			<div class="auto">
+				标题
+			</div>
+		</li>
+		<empty name="list">
+			<ul>
+				<li class="no-data">
+					没找到数据
+				</li>
+				<else/>
+				<form method="post" action="" name="form_data" id="form_data">
+					<foreach name="list" item="vo">
+						<php> if(in_array($vo['is_submit'],array(2,3))){if($user_id != $vo['user_id']){continue;}}</php>
+						<li class="tbody  <php> if((!in_array($vo['id'],$readed_id))&&($vo['create_time']>=time()-3600*30*24)) echo("bold")</php>" >
+							<div class="pull-left">
+								<label class="inline pull-left col-3">
+									<input class="ace" type="checkbox" name="id[]" value="{$vo.id}" />
+									<span class="lbl"></span></label>
+								<span class="col-10" id="follow-col-10"> {$vo.notice_no} </span>
+							</div>
+							<div class="pull-right">
+							<?php if($folder_id == '71'): ?>
+								<span class="col-6 ">&nbsp;{$res.$key.sys_name}</span>
+								<span class="col-10 "  style="text-align:center;color:#428bca;" onmouseover="showFollow({$vo.id})" onmouseout="disappear()">{$vo.views}</span>
+							<?php endif;?>
+								<span class="col-10 "> {$vo.create_time|toDate='Y-m-d'} </span>
+								<span class="col-6 "> {$vo.user_name} </span>
+								<span class="col-6 "> 
+									<if condition="($vo.is_submit eq 0)"> <a href="{:U('edit','id='.$vo['id'])}" >草稿</a>
+									<else />已提交
+									</if>
+								</span>
+								<if condition="$spzt eq 1"><span class="col-6 ">
+									 <if condition="$vo.is_submit eq 2"> 审批中  <else />已通过</if>  
+								 </span></if>
+							</div>
+							<div class="auto">
+								<a href="{:U('read','id='.$vo['id'])}" target="_blank">{$vo.name}
+								<eq name="vo.name|strlen" value="0">
+									无标题
+								</eq></a>
+							</div>
+						</li>
+					</foreach>
+				</form>
+				<div class="pagination">
+					{$page}
+				</div>
+		</empty>
+	</ul>
+</div>
+<div id="follow_list" >
+		<div class="div1">
+			<div class="div2">关注账户</div>
+		    <div class="div3" ></div>
+		</div>
+</div>
+<script type="text/javascript">
+$(function() {
+	var html = "<li>行政管理</li><li>公告管理</li><li>{$menu_title.$folder_id}</li>";
+	$("#breadcrumbs ul").append(html);
+});
+
+function showFollow(id){
+	document.getElementById("follow_list").style.display="block";
+	var cons = "";
+	$.post("{:U('Notice/get_follow')}",{'id':id},function(result){
+		$(".div3 span").remove();
+		/* $(".div3 p").remove(); */
+		for (var s in result.data) {
+			cons += "<div><span>"+result.data[s].dept_name+":</span><span>"+ result.data[s].name +"</span></div>";
+		}
+	$(".div3").append(cons); 
+	});
+	return false;
+}
+function disappear(){
+	document.getElementById("follow_list").style.display="none";
+} 
+
+$('#follow_list').hover(function(){
+	$('#follow_list').show();
+},function(){
+	$('#follow_list').hide();
+})
+
+function f(){
+	var f=$('#follow-col-10').offset().left+770;
+	$('#follow_list').css('left',f);
+	var f1=$('#form_data').height();
+	$('#follow_list').css('height',f1);
+	var f2=$('#follow_list').height()-60;
+	$('.div3').css('height',f2);
+}
+f();
+</script>
