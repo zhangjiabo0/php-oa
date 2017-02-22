@@ -10,10 +10,12 @@
 
   Support: https://git.oschina.net/smeoa/smeoa               
  -------------------------------------------------------------------------*/
-/*
- * logic 测试
- */
-class AttendanceTableLogic extends Model {
-	protected $tableName = 'attendance_table'; 
+
+class FlowNodeViewModel extends ViewModel {
+	public $viewFields=array(
+		'FlowNode'=>array('id','flow_version_id','node_type','node_name','rule_expression','rule_explain','is_del','sort','_type'=>'LEFT'),
+		'FlowVersion'=>array('version','flow_type_setting_id','_on'=>'FlowNode.flow_version_id=FlowVersion.id','_type'=>'LEFT'),
+		'FlowTypeSetting'=>array('module_name','flow_name','_on'=>'FlowVersion.flow_type_setting_id=FlowTypeSetting.id'),
+		);
 }
 ?>

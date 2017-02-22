@@ -1,0 +1,130 @@
+<script type="text/javascript">
+$(document).ready(function() {
+	set_return_url();
+});
+function add() {
+	window.open("{:U('add')}", "_self");
+}
+function addRole(){
+	var company_id = $("#tc_gltj select[name='company']").val().trim();
+	var company = $("#tc_gltj select[name='company']").find("option:selected").text().trim();
+	var role_name = $("#tc_gltj input[name='role_name']").val().trim();
+	var status = $("#tc_gltj select[name='status']").val().trim();
+	var sort = $("#tc_gltj input[name='sort']").val().trim();
+	if(company == ""){ui_error("请输入公司名称");return false;}
+	if(role_name == ""){ui_error("请输入角色名称");return false;}
+	if(status == ""){ui_error("请输入状态");return false;}
+	$.post("{:U('add')}",{"company_id":company_id,"company":company,"role_name":role_name,"status":status,"sort":sort},function(data){
+		if (data.status) {
+			$("#tc_gltj").hide();
+			ui_alert(data.info,function(){
+				location.reload();
+			});				
+		}
+	},'json');
+}
+function valiRole(obj){
+	var isEdit = "0";
+	var role_name,id,company;
+	if($(obj).attr('msg') == "1"){
+		isEdit = "1";		
+		role_name = $("#tc_glbj input[name='role_name']").val().trim();
+		id = $("#tc_glbj input[name='id']").val().trim();
+		company = $("#tc_glbj select[name='company']").find("option:selected").text().trim();
+	}else{
+		role_name = $("#tc_gltj input[name='role_name']").val().trim();
+		id = "";
+		company=$("#tc_gltj select[name='company']").find("option:selected").text().trim();
+	}
+	if(role_name == ""){ui_error("角色名称不能为空！");return false;}
+	
+	$.post("{:U('valiRole')}",{"roleName":role_name,"isEdit":isEdit,"id":id,"company":company},function(data){
+		if(data.status){
+			save(isEdit);
+		}else{
+			$(".vali_role_name").text(data.info).show();
+		}
+	},'json');
+}
+function save(isEdit){
+	var id,company_id,company,role_name,status,sort,url;
+	if(isEdit == "1"){
+		url = "{:U('save')}";
+		id = $("#tc_glbj input[name='id']").val().trim();
+		company_id = $("#tc_glbj select[name='company']").val().trim();
+		company = $("#tc_glbj select[name='company']").find("option:selected").text().trim();
+		role_name = $("#tc_glbj input[name='role_name']").val().trim();
+		status = $("#tc_glbj select[name='status']").val().trim();
+		sort = $("#tc_glbj input[name='sort']").val().trim();
+	}else{
+		url = "{:U('add')}";
+		id = "";
+		company_id = $("#tc_gltj select[name='company']").val().trim();
+		company = $("#tc_gltj select[name='company']").find("option:selected").text().trim();
+		role_name = $("#tc_gltj input[name='role_name']").val().trim();
+		status = $("#tc_gltj select[name='status']").val().trim();
+		sort = $("#tc_gltj input[name='sort']").val().trim();
+	}
+	if(company == ""){ui_error("请输入公司名称");return false;}
+	if(role_name == ""){ui_error("请输入角色名称");return false;}
+	if(status == ""){ui_error("请输入状态");return false;}
+	$.post(url,{"id":id,"company_id":company_id,"company":company,"role_name":role_name,"status":status,"sort":sort},function(data){
+		if (data.status) {
+			$("#tc_glbj").hide();
+			ui_alert(data.info,function(){
+				window.open(fix_url("{:U('index')}"), "_self");
+			});				
+		}
+	},'json');
+	
+}
+//分配菜单
+$(".a_cd").on("click",function (){
+	var id = $(this).parent().parent().find("span input:eq(1)").val().trim();
+	$.post("{:U('ass_menu')}",{"id":id},function(data){
+		if(data.status){
+			$(".tc_ul_div").html("").append(data.data);
+		}else{
+			ui_error(data.info);
+		}
+	},'json');
+});
+//菜单展开
+$(".tc_ul_div").on("click","img",function(){
+	if($(this).parent('li').children('ul').is(":hidden")){
+		$(this).parent('li').children('ul').slideDown();
+		$(this).attr('src',"./Public/img/new_versions/ajj.png");
+	}else{
+		$(this).parent('li').children('ul').slideUp();
+		$(this).attr('src','./Public/img/new_versions/add.png');
+	}
+});
+//删除
+$(".b2").on("click",function(){
+	var ids = "";
+	$(".content_ul input:checkbox[name='box']:checked").each(function(){
+		ids += $(this).next().val() + ",";
+	});
+	if(ids != ""){
+		ui_confirm('确定要删除吗?',function(){
+			window.open(fix_url("{:U('del')}?id=" + ids), "_self");
+		});
+	}
+});
+//分配菜单
+$(".bottom_sp2").on("click",function(){
+	var ids = "",rid;
+	$("#tc_cd input:checkbox[name='box']:checked").each(function(){
+		ids += $(this).next().val().trim() + ",";
+	});
+	rid = $(this).attr('rid').trim();
+	if(ids != ""){
+		$.post("{:U('assi_menu_save')}",{"ids":ids,"rid":rid},function(data){
+			$("#tc_cd").hide();	
+			ui_info(data.info);
+			location.reload();
+		},'json');
+	}
+});
+
+</script>

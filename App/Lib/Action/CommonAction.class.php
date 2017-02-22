@@ -25,10 +25,6 @@ class CommonAction extends Action {
 				$this -> _welogin($code);
 			}
 		}
-		$open=fopen("C:\log.txt","a" );
-		fwrite($open,'1'."\r\n");
-		fclose($open);
-		
 		if(is_mobile_request()){//手机端
 			$id = $_REQUEST['id'];
 			$token = $_REQUEST['token'];
@@ -62,6 +58,7 @@ class CommonAction extends Action {
 		}
 		$this -> assign('js_file', 'js/' . ACTION_NAME);
 		$this -> _assign_menu();
+		$this -> _assign_menu_new();
 		$this -> _assign_new_count();
 		$this -> _display_sign();
 	}
@@ -123,6 +120,125 @@ class CommonAction extends Action {
 		} else {
 			$this -> assign("title", get_system_config("SYSTEM_NAME"));
 		}
+	}
+	
+	/** 新版top menu和left menu **/
+	protected function _assign_menu_new(){
+		$uid = get_user_id();
+		$upid = M('RUserPosition')->where(array('user_id'=>$uid,'is_major'=>'1')) -> getField('id');
+		$role_ids = getRoleIdsByUpid($upid);//根据用户组id找到该用户的所有绑定角色ids
+		$tree = "";
+		if(!empty($role_ids)){
+			session('rids',$role_ids);
+			$menu = M('RRoleMenu');
+			$menus = array();//找出所有角色id对应的菜单ids
+			foreach ($role_ids as $k => $v){
+				$tmp = $menu -> where(array('role_id'=>$v))->field('menu_id') -> select();
+				foreach ($tmp as $kk => $vv){
+					$menus[] = $vv['menu_id'];
+				}
+			}
+			//更具菜单ids找出所有对应的菜单信息
+			$where['id'] = array('in',array_unique($menus));
+			$where['is_del'] = '0';
+			$where['menu_status'] = '1';
+			$menuList = M('MenuNew') -> where($where) ->order('sort asc') -> select();
+			$list = list_to_tree($menuList);
+			foreach ($list as $v){ 
+				switch ($v['menu_name']){
+					case '个人中心':
+						$this->assign('personal',left_new_tree_menu($v['_child'],"menu_ul2",2));
+						break;
+					case '人力资源':
+						$this->assign('ziyuan',left_new_tree_menu($v['_child'],"menu_ul3",3));
+						break;
+					case '行政管理':
+						$this->assign('xingzheng',left_new_tree_menu($v['_child'],"menu_ul4",4));
+						break;
+					case '信息管理':
+						$this->assign('xinxi',left_new_tree_menu($v['_child'],"menu_ul5",5));
+						break;
+					case '统计中心' :
+						$this->assign('tongji',left_new_tree_menu($v['_child'],"menu_ul6",6));
+						break;
+					case '档案中心':
+						$this->assign('dangan',left_new_tree_menu($v['_child'],"menu_ul7",7));
+						break;
+					case '知识中心':
+						$this->assign('zhishi',left_new_tree_menu($v['_child'],"menu_ul8",8));
+						break;
+					case '系统管理':
+						$this->assign('xitong',left_new_tree_menu($v['_child'],"menu_ul9",5));
+						break;
+				}
+			}
+		}
+	}
+	
+	//分配数据
+	protected function _assign_data_new(){
+		$uid = get_user_id();
+		$rup = M('RUserPosition');
+		$upid = $rup->where(array('user_id'=>$uid,'is_major'=>'1')) -> getField('id');
+		$role_ids = getRoleIdsByUpid($upid);//根据用户组id找到该用户的所有绑定角色ids
+		$scopes = array();
+		$all_users['user_id'] = array();
+		if(!empty($role_ids)){
+			$model = M('RRoleMenu');
+			$menu = $this -> config['menu'];
+			$where['menu_id'] = $menu['menu_new_id'];
+			$where['role_id'] = array('IN',$role_ids);
+			$data = $model -> where($where) -> select();//根据菜单id和角色id查询所角色所以定的数据权限
+			foreach ($data as $k => $v){
+				$scope = empty($v['scope']) ? '1' : $v['scope'];
+				switch ($scope){
+					case '1' ://全局范围
+						$scopes = true;
+						break;
+					case '2' ://行政管辖
+						$updp = M('RUserPositionDeptPosition') -> where(array('upid'=>$upid,'_string'=>'dept_id is not null and position_id is not null')) -> select();
+						if(!empty($updp)){
+							$all_user = array();
+							foreach($updp as $k => $v){
+								$uids = $rup->where(array('dept_id'=>$v['dept_id'],'position_id'=>$v['position_id'])) -> getField('user_id',true);
+								$all_user = array_merge($all_user,$uids);
+							}
+							$scopes['user_id'] = array_unique($all_user);
+						}
+						break;
+					case '3' ://仅自己
+						$scopes['user_id'] = array($uid);
+						break;
+					case '4' ://业务管辖基地
+						$dept_ids = M('RUserPositionBase')->where(array('upid'=>$upid)) -> getField('dept_id',true);
+						$child_dept_all = array();
+						foreach ($dept_ids as $dept_id){
+							$child_dept_all = array_merge($child_dept_all,get_child_dept_all($dept_id));
+						}
+						$scopes['user_id'] = $rup -> where(array('dept_id'=>array('in',$child_dept_all))) -> getField('user_id',true);
+						break;
+					case '5' ://业务管辖部门
+						$dept_ids = M('RUserPositionDept')->where(array('upid'=>$upid)) -> getField('dept_id',true);
+						$scopes['user_id'] = $rup -> where(array('dept_id'=>array('in',$dept_ids))) -> getField('user_id',true);
+						break;
+					case '6' ://考勤管辖部门
+						$dept_ids = M('RUserPositionAttendanceDept')->where(array('upid'=>$upid)) -> getField('dept_id',true);
+						$scopes['user_id'] = $rup -> where(array('dept_id'=>array('in',$dept_ids))) -> getField('user_id',true);
+						break;
+					default:
+						$scopes['user_id'] = array($uid);
+						break;
+				}
+				if($scopes === true){ return true;break;}
+				$all_users['user_id']=array_merge($all_users['user_id'],$scopes['user_id']);
+			}
+			if(is_array($all_users['user_id'])){
+				$all_users['user_id'] = array_unique($all_users['user_id']);
+				$all_users['user_id'] = array('in',$all_users['user_id']);
+				return $all_user;
+			}
+		}
+		return ""; 
 	}
 
 	protected function _assign_new_count() {
@@ -303,7 +419,7 @@ class CommonAction extends Action {
 	}
 
 	/** 删除标记  **/
-	protected function _del($id = null, $name = null, $return_flag = false) {
+	protected function _del($id = null, $name = null, $return_flag = false,$return_url = "") {
 		if (empty($id)) {
 			$id = $_REQUEST['id'];
 			if (empty($id)) {
@@ -326,7 +442,11 @@ class CommonAction extends Action {
 					return $result;
 				}
 				if ($result !== false) {
-					$this -> assign('jumpUrl', get_return_url());
+					if(!empty($return_url)){
+						$this -> assign('jumpUrl', U($return_url));
+					}else{
+						$this -> assign('jumpUrl', get_return_url());
+					}
 					$this -> success("成功删除{$result}条!");
 				} else {
 					$this -> error('删除失败!');
@@ -536,6 +656,15 @@ class CommonAction extends Action {
 	}
 
 	protected function _list($model, $map, $sortBy = '', $asc = false,$temp='list',$page_temp='page',$p_temp='p',$ext_function='') {
+		$newMap = $this -> _assign_data_new();
+		if($newMap === true && isset($map['user_id'])){
+			unset($map['user_id']);
+		}elseif(is_array($newMap)){
+			if(isset($map['user_id'])){
+				unset($map['user_id']);
+			}
+			$map = array_merge($map, $newMap);
+		}
 		//排序字段 默认为主键名
 		if (isset($_REQUEST['_order'])) {
 			$order = $_REQUEST['_order'];
@@ -556,7 +685,10 @@ class CommonAction extends Action {
 		} else {
 			$sort = $asc ? 'asc' : 'desc';
 		}
-
+		//获取该用户所对应的角色数据权限
+		$uid = get_user_id();
+		$upid = M('RUserPosition')->where(array('user_id'=>$uid,'is_major'=>'1')) -> getField('id');
+		$role_ids = getRoleIdsByUpid($upid);//根据用户组id找到该用户的所有绑定角色ids
 		//取得满足条件的记录数
 		$count_model = clone $model;
 		//取得满足条件的记录数
@@ -577,13 +709,13 @@ class CommonAction extends Action {
 			//分页查询数据
 			
 			if ($sort) {
-				if(is_mobile_request() && empty($_REQUEST['pagination'])){
+				if(is_mobile_request()){
 					$voList = $model -> where($map) -> order("`" . $order . "` " . $sort) -> select();
 				}else{
 					$voList = $model -> where($map) -> order("`" . $order . "` " . $sort) -> limit($p -> firstRow . ',' . $p -> listRows) -> select();
 				}
 			} else {
-				if(is_mobile_request() && empty($_REQUEST['pagination'])){
+				if(is_mobile_request()){
 					$voList = $model -> where($map) -> order($order) -> select();
 				}else{
 					$voList = $model -> where($map) -> order($order) -> limit($p -> firstRow . ',' . $p -> listRows) -> select();
@@ -814,6 +946,43 @@ class CommonAction extends Action {
 			$this -> ajaxReturn(array('msg'=>$type_name.'成功','code'=>$type,'status'=>1));
 		}else{
 			$this -> ajaxReturn(array('msg'=>$type_name.'失败','code'=>$type,'status'=>0));
+		}
+	}
+	public function edit_is_use(){
+		$res = M($_POST['model'])->where(array($_POST['field']=>$_POST['id']))->save(array('is_use'=>$_POST['type']));
+		if(false !== $res){
+			$this -> ajaxReturn($_POST['id'],1,1);
+		}else{
+			$this -> ajaxReturn($_POST['id'],0,0);
+		}
+	}
+	public function validate($model=''){
+		if($this->isAjax()){
+			$open=fopen("C:\log.txt","a" );
+			fwrite($open,json_encode($_POST)."\r\n");
+			fclose($open);
+			
+			$model = $model?$model:MODULE_NAME;
+			if(!$this->_request('clientid','trim') || !$this->_request($this->_request('clientid','trim'),'trim')){
+				$this->ajaxReturn("","",3);
+			}
+	
+			$where[$this->_request('clientid','trim')] = array('eq',$this->_request($this->_request('clientid','trim'),'trim'));
+			//针对编辑的情况
+			if($this->_request('id','intval',0)){
+				$where[M($model)->getpk()] = array('neq',$this->_request('id','intval',0));
+			}
+	
+			if($this->_request('clientid','trim')) {
+				
+				if (M($model)->where($where)->find()) {
+					$this->ajaxReturn($this->_request('clientid','trim'),$this->_request('msg','trim'),1);
+				} else {
+					$this->ajaxReturn("","",0);
+				}
+			}else{
+				$this->ajaxReturn("","",0);
+			}
 		}
 	}
 }

@@ -439,7 +439,7 @@ function get_user_config($field) {
 }
 
 function get_user_info($id, $field) {
-	$model = D("UserView");
+	$model = D("User");
 	$where['id'] = array('eq', $id);
 	$result = $model -> where($where) -> getfield($field);
 	return $result;
@@ -647,12 +647,51 @@ function get_user_name() {
 }
 
 function get_dept_id() {
-	return session('dept_id');
+	if(session('dept_id')){
+		return session('dept_id');
+	}else{
+		$user_id = get_user_id();
+		if($user_id){
+			return M('RUserPosition')->where(array('user_id'=>$user_id,'is_major'=>'1','is_del'=>'0'))->getField('dept_id');
+		}else{
+			return 0;
+		}
+	}
+}
+function get_position_id() {
+	if(session('position_id')){
+		return session('position_id');
+	}else{
+		$user_id = get_user_id();
+		if($user_id){
+			$dept_id = get_dept_id();
+			if($dept_id){
+				return M('RUserPosition')->where(array('user_id'=>$user_id,'dept_id'=>$dept_id,'is_del'=>'0'))->getField('position_id');
+			}else{
+				return M('RUserPosition')->where(array('user_id'=>$user_id,'is_major'=>'1','is_del'=>'0'))->getField('position_id');
+			}
+		}else{
+			return 0;
+		}
+	}
 }
 
-function get_dept_name() {
-	$result = M("Dept") -> find(session("dept_id"));
+function get_dept_name($dept_id) {
+	if($dept_id){
+		$result = M("Dept") -> find($dept_id);
+	}else{
+		$result = M("Dept") -> find(get_dept_id());
+	}
 	return $result['name'];
+}
+
+function get_position_name($position_id) {
+	if($position_id){
+		$result = M("Position") -> find($position_id);
+	}else{
+		$result = M("Position") -> find(get_position_id());
+	}
+	return $result['position_name'];
 }
 function get_dept_name_by_id($val) {
 	$result = M("Dept") -> find($val);
@@ -1015,9 +1054,10 @@ function select_tree_menu($tree) {
 	}
 	return $html;
 }
-function select_tree_menu_mul($tree,$level=0) {
+function select_tree_menu_mul($tree,$level=0,$selected=array(),$ext='') {
 	$level++;
 	$html = "";
+	$inpType = ($ext == '1') ? 'radio' : 'checkbox';
 	if (is_array($tree)) {
 		if($level == 3){
 			$html = "<ul class=\"ul1\">\r\n";
@@ -1031,17 +1071,18 @@ function select_tree_menu_mul($tree,$level=0) {
 				if (empty($val["id"])) {
 					$id = $val["name"];
 				}
+				$selected_html = in_array($id, $selected)?'checked="checked"':'';
 				if (isset($val['_child'])) {
 					$html = $html . "<li>\r\n";
 					$html = $html . "<img src=\"./Public/img/zk.png\"/>\r\n";
-					$html = $html . "<input type=\"checkbox\" name=\"dept[]\" name2=\"$title\" id=\"dept_$id\" value=\"$id\">\r\n";
+					$html = $html . "<input type=\"$inpType\" name=\"dept[]\" name2=\"$title\" id=\"dept_$id\" value=\"$id\" $selected_html $ext>\r\n";
 					$html = $html . "<label for=\"dept_$id\">$title</label>\r\n";
-					$html = $html . select_tree_menu_mul($val['_child'],$level);
+					$html = $html . select_tree_menu_mul($val['_child'],$level,$selected,$ext);
 					$html = $html . "</li>\r\n";
 				} else {
 					$html = $html . "<li>\r\n";
 					$html = $html . "<img src=\"./Public/img/hl.png\"/>\r\n";
-					$html = $html . "<input type=\"checkbox\" name=\"dept[]\" name2=\"".$title."\" id=\"dept_".$id."\" value=\"".$id."\">\r\n";
+					$html = $html . "<input type=\"$inpType\" name=\"dept[]\" name2=\"".$title."\" id=\"dept_".$id."\" value=\"".$id."\" $selected_html $ext>\r\n";
 					$html = $html . "<label for=\"dept_$id\">$title</label>\r\n";
 					$html = $html . "</li>\r\n";
 				}
@@ -1054,7 +1095,6 @@ function select_tree_menu_mul($tree,$level=0) {
 /*
  * 物品选择
  */
-
 function popup_menu($tree, $level = 0,$deep=100,$other_nodes=array()) {
 	$level++;
 	$deep--;
@@ -1262,17 +1302,24 @@ function popup_tree_menu_dept($tree, $level = 0,$deep=100,$default_ids=array()) 
 				if($level == '1'){
 					$html = $html . "<span>$code</span>";
 				}else{
-					$html = $html . "<a href=".U('view?id='.$id)." $style_color>$code</a>";
+					if(isAction('dept/view')){
+						$html = $html . "<a href=".U('view?id='.$id)." $style_color>$code</a>";
+					}else{
+						$html = $html . "<span  $style_color>$code</span>";
+					}
 				}
 				
 				$html = $html . "\r\n</span>\r\n";
 				$html = $html . "<span class=\"li_sp1\">$title</span>\r\n";
 				$html = $html . "<span class=\"li_sp2\" id=\"a0_$id\" $style_bold>$status</span>\r\n";
 				$html = $html . "<span class=\"li_sp3\">";
-				$html = $html . "<a class=\"content_a\" id=\"a1_$id\" onclick=\"set_use('$id','$set_use')\">$activate</a>";
-// 				$html = $html . "<a class=\"content_a\" id=\"a1_0\">$activate</a>";
-				$html = $html . "<a class=\"content_a\" id=\"a2_$id\" href=\"$edit_url\">$edit</a>";
-				$html = $html . "<a class=\"content_a\" id=\"a3_$id\" onclick=\"add_child_dept('$id')\">新增子部门</a>";
+				if(isAction('dept/set_dept')){
+					$html = $html . "<a class=\"content_a\" id=\"a1_$id\" onclick=\"set_use('$id','$set_use')\">$activate</a>";
+				}if(isAction('dept/edit_company')){
+					$html = $html . "<a class=\"content_a\" id=\"a2_$id\" href=\"$edit_url\">$edit</a>";
+				}if(isAction('dept/ajax_get_dept_info')){
+					$html = $html . "<a class=\"content_a\" id=\"a3_$id\" onclick=\"add_child_dept('$id')\">新增子部门</a>";
+				}
 				$html = $html . "</span>\r\n";
 				if (isset($val['_child'])) {
 					$html = $html . popup_tree_menu_dept($val['_child'], $level,$deep,$default_ids);
@@ -1366,7 +1413,8 @@ function popup_menu_dept_position_checkbox($tree, $level = 0,$deep=100,$child_de
 				}
 				if(substr($id, 0,1) == 'p'){
 					//岗位
-					if(in_array(substr($id, 2), $child_positions)){
+					$arr = explode('_', $id);
+					if(in_array(array('dept_id'=>$arr[1],'position_id'=>$arr[2]), $child_positions)){
 						$is_checked = ' checked="checked"';
 					}else{
 						$is_checked = ' ';
@@ -1499,12 +1547,13 @@ function dropdown_menu($tree, $level = 0) {
 	return $html;
 }
 //页面菜单栏的显示
-function left_new_tree_menu($tree, $level = 0,$deep=100) {
-	$level++;
+function left_new_tree_menu($tree, $ctyle, $num, $level = 0,$deep=100 ,$flag = false) {
 	$deep--;
 	$html = "";
+	$str2 = str_replace("menu_ul", "cd_span", $ctyle);
+	if($flag){$ctyle = $ctyle ."_".$level;$str2 = $str2."_".$level;}
 	if (is_array($tree) && $deep>0) {
-		$html = "<ul class=\"menu_ul2\">\r\n";
+		$html = "<ul class=\"$ctyle\">\r\n";
 		foreach ($tree as $val) {
 			if (isset($val["menu_name"])) {
 				$title = $val["menu_name"];
@@ -1513,11 +1562,14 @@ function left_new_tree_menu($tree, $level = 0,$deep=100) {
 				$url = U($val["menu_addr"]);
 				$sort = $val['sort'];
 				if (isset($val['_child'])) {
-					$html = $html . "<li>\r\n<a class=\"menu_li2_a\"><span class=\"cd_span2\"></span><div class=\"cd_div\" id=\"cd_div2\">{$title}</div><img class=\"cd_ts\" src=\"__PUBLIC__/img/new_home/jian2.png\"/></a>\r\n";
-					$html = $html . left_new_tree_menu($val['_child'], $level,$deep);
+					$str = str_replace("ul", "li", $ctyle);
+					$str = $str."_a".$level;
+					$html = $html . "<li>\r\n<a class=\"$str\"><span class=\"$str2\"></span><div class=\"cd_div\" id=\"cd_div2\">{$title}</div><img class=\"cd_ts\" src=\"__PUBLIC__/img/new_home/jian$num.png\"/></a>\r\n";
+					$html = $html . left_new_tree_menu($val['_child'],$ctyle, $num, $level,$deep,true);
 					$html = $html . "</li>\r\n";
+					$level++;
 				} else {
-					$html = $html . "<li class='menu_li2'><a href=\"$url\"><span class='cd_span2'></span><div class='cd_div'>{$title}</div></a></li>\r\n";
+					$html = $html . "<li><a href=\"$url\"><span class='$str2'></span><div class='cd_div'>{$title}</div></a></li>\r\n";
 				}
 			}
 		}
@@ -2054,21 +2106,21 @@ function get_sid() {
 	return md5(bin2hex(time()) . rand_string());
 }
 
-function get_position_name($id) {
-	$data = D('UserView') -> find($id);
-	if(empty($data['position_name'])){//可能是建立视图时表链接时某些字段不写导致无法生成视图
-		$user = D('User')->find($id);
-		$position = D('position')->find($user['position_id']);
-		if(empty($position['name'])){
-			return '不明';
-		}else{
-			return $position['name'];
-		}
+// function get_position_name($id) {
+// 	$data = D('UserView') -> find($id);
+// 	if(empty($data['position_name'])){//可能是建立视图时表链接时某些字段不写导致无法生成视图
+// 		$user = D('User')->find($id);
+// 		$position = D('position')->find($user['position_id']);
+// 		if(empty($position['name'])){
+// 			return '不明';
+// 		}else{
+// 			return $position['name'];
+// 		}
 		
-	}else{
-		return $data['position_name'];
-	}
-}
+// 	}else{
+// 		return $data['position_name'];
+// 	}
+// }
 
 function get_emp_pic($id) {
 	$data = M("User") -> where("id=$id") -> getField("pic");
@@ -2887,15 +2939,6 @@ function get_leave_seconds($start,$end){//获取start和end之间经过的秒数
 		return get_leave_day_seconds($start,$start_date_1)+get_leave_seconds($start_date_1,$end);
 	}
 }
-function get_overtime_seconds($start,$end){//获取start和end之间经过的秒数（除去12点到1点的午餐时间）
-	$start_date = date('Y-m-d',$start);
-	$start_date_1 = strtotime($start_date.' 00:00')+86400;
-	if($end<$start_date_1){
-		return get_overtime_day_seconds($start,$end);
-	}else{
-		return get_overtime_day_seconds($start,$start_date_1)+get_overtime_seconds($start_date_1,$end);
-	}
-}
 // function get_leave_seconds1($start,$end){
 // 	$seconds = 0;
 // 	for($i=$start;$i<$end;$i=$i+86400){
@@ -2966,37 +3009,6 @@ function get_leave_day_seconds($start,$end,$is_holidy=false){//获取一天之�
 		}
 	}else{
 		return $end_morning-$start_morning+$end_afternoon-$start_afternoon;
-	}
-}
-/*
- * 获取一天之中start和end之间经过的秒数（中间减去午休时间）
- */
-function get_overtime_day_seconds($start,$end){
-	$start_date = date('Y-m-d',$start);
-	$end_morning = strtotime($start_date.' '.get_system_config("MORNING_END"));
-	$start_afternoon = strtotime($start_date.' '.get_system_config("AFTERNOON_START"));
-	if($end-$start<86400){
-		if($start<$end_morning){
-			if ($end>$start_afternoon){
-				return $end_morning-$start+$end-$start_afternoon;
-			}elseif ($end>=$end_morning && $end<=$start_afternoon){
-				return $end_morning-$start;
-			}elseif ($end<$end_morning){
-				return $end-$start;
-			}
-		}elseif($start>=$end_morning && $start<=$start_afternoon){
-			if ($end>$start_afternoon){
-				return $end-$start_afternoon;
-			}elseif ($end>=$end_morning && $end<=$start_afternoon){
-				return 0;
-			}
-		}elseif($start>$start_afternoon){
-			if ($end>$start_afternoon){
-				return $end-$start;
-			}
-		}
-	}else{
-		return $end_morning-$start+$end-$start_afternoon;
 	}
 }
 function slice_time($start,$end){
@@ -3086,29 +3098,31 @@ function slice_time_day_over_time($start,$end){
 	}
 }
 /*
- * 输入id(或者数组)，输出emp_no，emp_name，emp_name_display
+ * 输入upid(或者数组)，输出emp_no，emp_name，emp_name_display
  */
-function getFlowData($ids,$mark='->'){
-	if(empty($ids)){
+function getFlowData($upids,$mark='->'){
+	if(empty($upids)){
 		return false;
-	}elseif(!is_array($ids)){
-		$ids = array($ids);
+	}elseif(!is_array($upids)){
+		$upids = array($upids);
 	}
 	$emp_no = '';
 	$emp_name = '';
 	$emp_name_display = '';
-	foreach ($ids as $id){
-		if(!empty($id)){
+	foreach ($upids as $upid){
+		if(!empty($upid)){
+			$id = M('RUserPosition')->where(array('id'=>$upid))->getField('user_id');
 			$flow_emp_no = get_user_info($id,'emp_no');
 			$flow_name = get_user_info($id,'name');
 			
+			$upid_no .= $upid.'|';
 			$emp_no .= 'emp_'.$flow_emp_no.'|';
 			$emp_name .= $flow_name.'<>';
 			$emp_name_display .= $mark.$flow_name;
 		}
 	}
 	$emp_name_display = substr($emp_name_display,strlen($mark));
-	return array('confirm'=>$emp_no,'confirm_name'=>$emp_name,'confirm_name_display'=>$emp_name_display);
+	return array('confirm'=>$emp_no,'confirm_name'=>$emp_name,'upid_no'=>$upid_no,'confirm_name_display'=>$emp_name_display);
 }
 /*
  * 根据flow表的type字段判断使用哪张表
@@ -3989,5 +4003,134 @@ function showBusiness($rid,$mid){
 }
 function showBusinessSave($rid,$mid){
 	return $info = M('RRoleMenu') -> where(array('menu_id'=>$mid,'role_id'=>$rid))->getField('id');
+}
+function isAction($url){
+	$pid = M('PrivilegeRole') -> where(array('role_id'=>array('in',session('rids')))) -> getField('privilege_id',true);
+	$privilege = M('Privilege') -> where(array('is_del'=>'0','id'=>array('in',$pid)))->select();
+	$flag = false;
+	foreach ($privilege as $k => $v){
+		if($url == $v['url']){
+			$flag =  true;break;
+		}
+	}
+	return $flag;
+}
+function approve_display($approve_display){
+	return $approve_display=='1'?'显示审批人姓名':'显示审批人工号';
+}
+function is_refactor($is_refactor){
+	return $is_refactor=='1'?'重构':'不重构';
+}
+function is_emerg($is_emerg){
+	return $is_emerg=='1'?'是':'否';
+}
+/*
+ * 根据行政管辖找岗位级别介于$start和$end之间的UserPosition
+ */
+function GetMyLeader($start,$end,$user_id=null,$position_id=null,$dept_id=null){
+	if(empty($user_id)){
+		$user_id = get_user_id();
+	}
+	if(empty($position_id)){
+		$position_id = get_position_id();
+	}
+	if(empty($dept_id)){
+		$dept_id = get_dept_id();
+	}
+	$upids = M('RUserPositionDeptPosition')->where(array('dept_id'=>$dept_id,'position_id'=>$position_id))->getField('upid',true);
+	$where['id'] = array('in',$upids);
+	
+	$where_position_sequence = array();
+	if($start){
+		$where_position_sequence['_complex']['sequence_degree'][] = array('egt',$start);
+	}
+	if($end){
+		$where_position_sequence['_complex']['sequence_degree'][] = array('elt',$end);
+	}
+	$position_sequence_ids = M('PositionSequence')->where($where_position_sequence)->getField('id',true);
+	$where['position_sequence_id'] = array('in',$position_sequence_ids);
+	$res = M('RUserPosition')->where($where)->order('position_sequence_id asc')->select();
+	return $res;
+}
+/*
+ * 根据行政管辖找全部上级的UserPosition
+ */
+function GetAllMyLeader($user_id=null,$position_id=null,$dept_id=null){
+	if(empty($user_id)){
+		$user_id = get_user_id();
+	}
+	if(empty($position_id)){
+		$position_id = get_position_id();
+	}
+	if(empty($dept_id)){
+		$dept_id = get_dept_id();
+	}
+	$upids = M('RUserPositionDeptPosition')->where(array('dept_id'=>$dept_id,'position_id'=>$position_id))->getField('upid',true);
+	$res = M('RUserPosition')->where(array('id'=>array('in',$upids)))->order('position_sequence_id asc')->select();
+	return $res;
+}
+/*
+ * 根据行政管辖找连续上级至一级部门负责人的UserPosition
+ */
+function GetMyLeaderToOne($user_id=null,$position_id=null,$dept_id=null){
+	if(empty($user_id)){
+		$user_id = get_user_id();
+	}
+	if(empty($position_id)){
+		$position_id = get_position_id();
+	}
+	if(empty($dept_id)){
+		$dept_id = get_dept_id();
+	}
+	$upids = M('RUserPositionDeptPosition')->where(array('dept_id'=>$dept_id,'position_id'=>$position_id))->getField('upid',true);
+	$position_sequence_ids = M('PositionSequence')->where(array('sequence_degree'=>array('elt','26')))->getField('id',true);
+	$res = M('RUserPosition')->where(array('id'=>array('in',$upids),'position_sequence_id'=>array('in',$position_sequence_ids)))->order('position_sequence_id asc')->select();
+// 	foreach ($res as $k=>$v){
+// 		$find = M('Dept')->where(array('id'=>$v['dept_id'],'pid'=>array('in',array(1,2,3,4,5))))->find();
+// 		if(false == $find){
+// 			unset($res[$k]);
+// 		}
+// 	}
+	return $res;
+}
+/*
+ * 根据业务管辖找岗位级别介于$start和$end之间的UserPosition
+ */
+function GetMyLeaderBusiness($start,$end,$user_id=null,$dept_id=null){
+	if(empty($user_id)){
+		$user_id = get_user_id();
+	}
+	if(empty($dept_id)){
+		$dept_id = get_dept_id();
+	}
+	$upids = M('RUserPositionDept')->where(array('dept_id'=>$dept_id))->getField('upid',true);
+	$where['id'] = array('in',$upids);
+	
+	$where_position_sequence = array();
+	if($start){
+		$where_position_sequence['_complex']['sequence_degree'][] = array('egt',$start);
+	}
+	if($end){
+		$where_position_sequence['_complex']['sequence_degree'][] = array('elt',$end);
+	}
+	$position_sequence_ids = M('PositionSequence')->where($where_position_sequence)->getField('id',true);
+	$where['position_sequence_id'] = array('in',$position_sequence_ids);
+	
+	$res = M('RUserPosition')->where($where)->order('position_sequence_id asc')->select();
+	return $res;
+}
+/*
+ * 根据业务管辖找全部上级的UserPosition
+ */
+function GetAllMyLeaderBusiness($user_id=null,$dept_id=null){
+	if(empty($user_id)){
+		$user_id = get_user_id();
+	}
+	if(empty($dept_id)){
+		$dept_id = get_dept_id();
+	}
+	$upids = M('RUserPositionDept')->where(array('dept_id'=>$dept_id))->getField('upid',true);
+	$res = M('RUserPosition')->where(array('id'=>array('in',$upids)))->order('position_sequence_id asc')->select();
+	return $res;
 }
 ?>

@@ -10,21 +10,12 @@
 
   Support: https://git.oschina.net/smeoa/smeoa               
  -------------------------------------------------------------------------*/
-/*
- * 测试Mongo模型
- */
-class TestModel extends MongoModel  {
-	protected $trueTableName = 'col';
-	protected $dbName = 'test';
-	
-	Protected $_idType = self::TYPE_INT;
-    protected $_autoinc =  true;
-     
-	protected $connection = array(
-			'db_type' => 'mongo',
-			'db_host' => 'localhost',
-			'db_port' => '27017',
-	);
-		
+
+class UserView3Model extends ViewModel {
+	public $viewFields=array(
+		'User'=>array('id','emp_no','name','letter','position_id','email','duty','office_tel','mobile_tel','pic','bk_pic','birthday','sex','password','is_del','available_hour','more_role','_type'=>'LEFT'),
+		'Position'=>array('dept_id','position_name','_on'=>'Position.id=User.position_id','_type'=>'LEFT'),
+		'Dept'=>array('name'=>'dept_name','_on'=>'Dept.id=Position.dept_id')
+		);
 }
 ?>

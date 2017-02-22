@@ -51,6 +51,7 @@
         <li>员工在职履历</li>
         <li>考勤动态</li>
         <li>签入数据</li>
+        <li>状态管理</li>
     </ul>
     <ul class="ul2" style="overflow: auto;height: 460px;">
         <li>
@@ -985,6 +986,83 @@
             </table>
 
       </li>
+       <li>
+            <div class="nav_1">
+                <span class="block"></span>
+                <h1>状态管理</h1>
+            </div>
+            <form method="post" action="{:U('status_manage')}">
+            <table width="100%" border="0" style="background:#fff" cellspacing="1" cellpadding="0" class="ta1">
+            <input type="hidden" name="user_id" value="{$user_id}">
+            <tr>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">账号状态</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff">
+                <span class="sp2" style="text-align:center;">
+                	<select name="no_status" id="no_status" style="width:200px;height:25px">
+                    <option value="">请选择</option>
+                    <foreach name="noStatus" item="vo">
+                    <?php if($vo['data_name'] == $value['no_status']){
+							$select = 'selected="selected"';
+						}else{
+							$select = '';
+						}
+                    ?>
+                        <option {$select} value="{$vo.data_name}">{$vo.data_name}</option>
+                    </foreach>
+                    </select>
+                </span>
+                </td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">员工状态</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff">
+                <span class="sp2" style="text-align:center;">
+                	<select name="stuff_status" id="stuff_status" style="width:200px;height:25px">
+                    <option value="">请选择</option>
+                    <?php foreach ($stufStatus as $k => $v): 
+	                    			if($v['data_name'] ==$value['stuff_status'])
+	                    				$select = 'selected="selected"';
+	                    			else 
+	                    				$select = '';
+	                    	?>
+	                    	<option {$select} value="{$v.data_name}">{$v.data_name}</option>
+	                 <?php endforeach; ?>
+                    </select>
+                </span>
+                </td>
+            </tr>
+            <tr>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">入职日期</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp2">
+                	<input style="width:200px;height:25px;" data-date-format="yyyy-mm-dd" id="entry_time" name="entry_time" type="text" class="form-control input-date"  <if condition="($value.entry_time eq '')">value="{$information[0]}"<else />value="{$value.entry_time}"</if> />
+                </span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">转正日期</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp2">
+                	<input style="width:200px;height:25px;" data-date-format="yyyy-mm-dd" id="regular_time" name="regular_time" type="text" class="form-control input-date" <if condition="($value.regular_time eq '')">value="{$information[1]}"<else />value="{$value.regular_time}"</if> />
+                </span></td>
+            </tr>
+            <tr>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">更新人</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp2">{$value.create_name}</span></td>
+                
+                <td class="leave" width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">离职时间</span></td>
+                <td class="leave" width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp2">
+                	<input style="width:200px;height:25px;" data-date-format="yyyy-mm-dd" id="leave_time" name="leave_time" type="text" class="form-control input-date"  value="{$value.leave_time}" />
+                </span></td>
+           
+            </tr>
+            <tr>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">更新时间</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp2">{$value.create_time}</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp1">备注</span></td>
+                <td width="25%" height="29" align="center" valign="middle" bgcolor="#fff"><span class="sp2">
+                	<input type="text" style="width:200px;height:25px;" name="remark" value="{$value['remark']}"/>
+                </span></td>
+            </tr>
+            <tr>
+			    <td colspan="9" bgcolor="#FFFFFF" align="center"><input class="btn btn-sm btn-primary" type="submit" value="保存"><a onclick="quit()"  class="btn btn-sm btn-danger" style="margin: 5px;">取消</a></td>
+			</tr>
+        </table>
+        </form>
+      </li>
     </ul>
     <script>
     	var profile_user_index = "{$profile_user_index}";
@@ -1016,10 +1094,21 @@
 				}
        		});
        	}
+
+       	
     </script>
     <script type="text/javascript">
 $(function() {
 	var html = "<li>档案中心</li><li><a href='{:U("profile/userlist")}'>员工档案管理</a></li><li>查看员工档案</li>";
 	$("#breadcrumbs ul").append(html);
 });
+
+$("#stuff_status").change(function(){
+		var val=$(this).val();
+		if(val == '离职'){
+			$("#leave_time").attr("required",true);
+		}else{
+			$("#leave_time").attr("required",false);
+		}
+	}); 
 </script>

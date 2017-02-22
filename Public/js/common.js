@@ -499,6 +499,37 @@ function check_form(form_id) {
 				$(this).focus();				
 				check_flag=false;
 				return false;
+			}else if($(this).attr("unique") == 'true'){
+				var vars = new Array();
+				vars.push({"name":"clientid","value":$(this).attr("name")});
+				vars.push({"name":$(this).attr("name"),"value":$(this).val()});
+				vars.push({"name":"id","value":$("#id").val()});
+				vars.push({"name":"msg","value":$(this).attr("u_msg")});
+				$.ajax({
+					type : "POST",
+					url : $(this).attr('url'),
+					data : vars,
+					async: false,
+					dataType : "json",
+					success : function(data){
+						if(data.status == '1'){
+							ui_error(data.info);
+							$("#"+data.data).focus();				
+							check_flag=false;
+							return false;
+						}
+					}
+				})
+			}
+		}
+	});
+	$("#" + form_id + " select").each(function(i) {
+		if ($(this).attr("check")) {
+			if (!validate2($(this).val(), $(this).attr("check"), $(this).attr("neq"))) {
+				ui_error($(this).attr("msg"));
+				$(this).focus();				
+				check_flag=false;
+				return false;
 			}
 		}
 	});
@@ -535,6 +566,30 @@ function validate(data, datatype) {
 		case "eqt":
 			data2 = $("#" + data2).val();
 			return data >= data2
+			break;
+		case "mobile":
+			var reg = /^1(3[0-9]|4[57]|5[0-35-9]|7[0135678]|8[0-9])+\d{8}$/;
+			return reg.test(data);
+			break;
+	}
+}
+
+function validate2(data, datatype, neq) {
+	switch (datatype) {
+		case "require":
+			if(neq == ""){
+				if (data == "") {
+					return false;
+				} else {
+					return true;
+				}
+			}else{
+				if (data == "" || data == null || data == neq) {
+					return false;
+				} else {
+					return true;
+				}
+			}
 			break;
 	}
 }

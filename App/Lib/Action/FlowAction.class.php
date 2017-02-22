@@ -12,7 +12,7 @@
  -------------------------------------------------------------------------*/
 
 class FlowAction extends CommonAction {
-	protected $config = array('app_type' => 'flow', 'action_auth' => array('folder' => 'read','cancel'=>'read', 'mark' => 'read', 'report' => 'read','ajaxgetflow' =>'read','ajaxgettime' =>'read','editflow' =>'read','export_office_supplies_application'=>'read','import_office_supplies_application'=>'read','export_goods_procurement_allocation'=>'read','import_goods_procurement_allocation'=>'read','del'=>'write','winpop_goods'=>'read','getlist'=>'read','get_dept_child'=>'read','export_excel'=>'read'));
+	protected $config = array('app_type' => 'flow', 'action_auth' => array('folder' => 'read','cancel'=>'read', 'mark' => 'read', 'report' => 'read','ajaxgetflow' =>'read','ajaxgettime' =>'read','editflow' =>'read','export_office_supplies_application'=>'read','import_office_supplies_application'=>'read','export_goods_procurement_allocation'=>'read','import_goods_procurement_allocation'=>'read','del'=>'write','winpop_goods'=>'read','getlist'=>'read','get_dept_child'=>'read','export_excel'=>'read','get_dept'=>'read'));
 
 	function _search_filter(&$map) {
 		$map['is_del'] = array('eq', '0');
@@ -49,12 +49,16 @@ class FlowAction extends CommonAction {
 	function _flow_auth_filter($folder, &$map) {
 		$emp_no = get_emp_no();
 		$user_id = get_user_id();
+		$dept_id = get_dept_id();
+		$position_id = get_position_id();
+		$upid = M('RUserPosition')->where(array('user_id'=>$user_id,'position_id'=>$position_id,'dept_id'=>$dept_id))->getField('id');
 		switch ($folder) {
 			case 'confirm' :
 				$this -> assign("folder_name", '待办');
 				$FlowLog = M("FlowLog");
 				$where['emp_no'] = $emp_no;
 				$where['_string'] = "result is null";
+				$where['upid'] = array('in',array('0',$upid));
 				$log_list = $FlowLog -> where($where) -> field('flow_id') -> select();
 				$log_list = rotate($log_list);
 				if (!empty($log_list)) {
@@ -164,9 +168,9 @@ class FlowAction extends CommonAction {
 					//$map加上自己园区的
 					if(isHeadquarters(get_user_id())==0){//总部
 						//云客服部考勤单独做
-						$pos_id = get_user_info(get_user_id(), 'pos_id');
-						$pos = M('Dept')->find($pos_id);
-						if($pos['name']=='云客服前台'){
+// 						$pos_id = get_user_info(get_user_id(), 'pos_id');
+// 						$pos = M('Dept')->find($pos_id);
+						if(get_position_name()=='云客服前台'){
 							$map['dept_id'] = array('in',get_child_dept_all($pos['pid']));
 						}else{
 							$map['dept_id'] = array('in',get_child_dept_all(27));
@@ -622,9 +626,9 @@ class FlowAction extends CommonAction {
 	function _folder_export_detail($data,$table_name,$type,$date,$hui){
 		if($type=='leave'){//请假调休单特殊处理
 			//云客服部考勤单独做
-			$pos_id = get_user_info(get_user_id(), 'pos_id');
-			$pos = M('Dept')->find($pos_id);
-			if($pos['name']=='云客服前台'){
+// 			$pos_id = get_user_info(get_user_id(), 'pos_id');
+// 			$pos = M('Dept')->find($pos_id);
+			if(get_position_name()=='云客服前台'){
 				$dept_id = $pos['pid'];
 				$this -> _folder_export_detail_leave($date,$dept_id);
 			}else{
@@ -1351,14 +1355,18 @@ class FlowAction extends CommonAction {
 		$uid = get_user_id();
 		if($uid){
 			$info = array();
-			$user_info = get_user_info($uid,'name,dept_name,dept_id,office_tel,mobile_tel,duty,email');
+			$user_info = get_user_info($uid,'name,office_tel,mobile_tel,duty,email');
 			foreach ($user_info as $v){
 				$info = $v;
 			}
 			$info['user_id'] = $uid;
 		}
+		$info['dept_id'] = get_dept_id();
+		$info['dept_name'] = get_dept_name();
+		$info['position_id'] = get_position_id();
+		$info['position_name'] = get_position_name();
 		$info['available_hour'] = getAvailableHour();
-		$info['available_hour2'] = getAvailableHour3(time(),$uid,'Create');
+		$info['available_hour2'] = getAvailableHour2(time(),$uid,'Create');
 		$info['available_year'] = getAvailableYearHour()/2;
 		$this -> assign("user_info", $info);
 		$this -> assign("time", time());
@@ -1405,32 +1413,92 @@ class FlowAction extends CommonAction {
 		$this -> display();
 	}
 	public function ajaxgetflow(){
-		$type = $_GET['type'];
-		switch($type){
-			case 'leave' : $this->ajaxgetflow_leave();
-			case 'attendance' : $this->ajaxgetflow_attendance();
-			case 'over_time' : $this->ajaxgetflow_over_time();
-			case 'employment' : $this->ajaxgetflow_employment();
-			case 'internal' : $this->ajaxgetflow_internal();
-			case 'metting_communicate' : $this->ajaxgetflow_metting_communicate();
-			case 'card_application' :$this->ajaxgetflow_card_application();
-			case 'notice_file' :$this->ajaxgetflow_notice_file();
-			case 'notice_personnel' :$this->ajaxgetflow_notice_personnel();
-			case 'contract' :$this->ajaxgetflow_contract();
-			case 'resignation_application' : $this->ajaxgetflow_resignation();
-			case 'probation_evaluate' : $this->ajaxgetflow_probation();
-			case 'regular_work_application' : $this->ajaxgetflow_regular_work_application();
-			case 'personnel_changes' :$this->ajaxgetflow_personnel_changes();
-			case 'salary_changes' :$this->ajaxgetflow_salary_changes();
-			case 'resignation_list' :$this->ajaxgetflow_resignation_list();
-			case 'office_supplies_application' :$this->ajaxgetflow_office_supplies_application();
-			case 'office_use_application' :$this->ajaxgetflow_office_use_application();
-			case 'goods_procurement_allocation' :$this->ajaxgetflow_goods_procurement_allocation();
-			case 'bus_card_use' :$this->ajaxgetflow_bus_card_use();
-			case 'chops_use' :$this->ajaxgetflow_chops_use();
-			case 'car_use' :$this->ajaxgetflow_car_use();
-			default :return false;
+		$flow_type_setting_id = M('FlowTypeSetting')->where(array('flow_type_id'=>$_POST['type'],'is_use'=>'1','is_del'=>'0'))->getField('id');
+		//优先考虑岗位特殊配置
+		$type = 2;
+		$company_position_config = M('PositionConfig')->where(array('fid'=>$flow_type_setting_id,'version'=>'当前','is_del'=>'0','dept_id'=>array('like','%|'.get_dept_id().'|%'),'pos_id'=>get_position_id()))->find();
+		if(empty($company_position_config)){
+			$company_position_config = M('PositionConfig')->where(array('fid'=>$flow_type_setting_id,'version'=>'当前','is_del'=>'0','pos_id'=>get_position_id()))->find();
+			if(empty($company_position_config)){
+				$company_position_config = M('PositionConfig')->where(array('fid'=>$flow_type_setting_id,'version'=>'当前','is_del'=>'0','dept_id'=>array('like','%|'.get_dept_id().'|%')))->find();
+				if(empty($company_position_config)){
+					$company_position_config = M('PositionConfig')->where(array('fid'=>$flow_type_setting_id,'version'=>'当前','is_del'=>'0','dept_id'=>array('like','%|'.get_dept_id().'|%')))->find();
+					if(empty($company_position_config)){
+						$type = 1;
+						$root_dept = getRootDept(get_dept_id());
+						$company_position_config = M('CompanyConfig')->where(array('fid'=>$flow_type_setting_id,'version'=>'当前','is_del'=>'0','company_id'=>$root_dept['id']))->find();
+					}
+				}
+			}
 		}
+		if(empty($company_position_config)){
+			//获取不到合适的公司通用配置和岗位特殊配置
+			$this->ajaxReturn(null,null,0);
+		}else{
+			$flow_config_detail = M('FlowConfigDetail')->where(array('flow_config_id'=>$company_position_config['id'],'type'=>$type,'is_using'=>'1'))->order('sheet_id,step')->select();
+			$upids = array();
+			foreach ($flow_config_detail as $k=>$v){
+				if($this->check_condition($v['sheet_condition_id'])){
+					if($this->check_condition($v['node_condition_id'])){
+						if($v['node_result_id'] == '1' || $v['node_result_id'] == '2'){
+							$rule_expression = M('Flow_node')->where(array('id'=>$v['node_result_val'],'is_del'=>'0'))->getField('rule_expression');
+							$res = eval('return '.$rule_expression.';');
+							if(!empty($res)){
+								if(is_array($res)){
+									foreach ($res as $k=>$v){
+										$upids[] = $v['id'];
+									}
+								}else{
+									$upids[] = $res['id'];
+								}
+							}
+						}elseif($v['node_result_id'] == '3'){
+							$node_result_val = explode('|',$v['node_result_val']);
+							$r_user_position = M('RUserPosition')->where(array('dept_id'=>$node_result_val[1],'position_id'=>$node_result_val[2]))->getField('id',true);
+							foreach ($r_user_position as $v){
+								$upids[] = $v;
+							}
+						}elseif($v['node_result_id'] == '4'){
+							$user_id = $v['node_result_val'];
+							$upid = M('RUserPosition')->where(array('user_id'=>$user_id,'is_major'=>'1'))->getField('id');
+							if($upid){
+								$upids[] = $upid;
+							}
+						}
+					}
+					
+				}
+			}
+			$this->ajaxReturn(getFlowData($upids),null,1);
+			
+		}
+// 		die;
+// 		$type = $_GET['type'];
+// 		switch($type){
+// 			case 'leave' : $this->ajaxgetflow_leave();
+// 			case 'attendance' : $this->ajaxgetflow_attendance();
+// 			case 'over_time' : $this->ajaxgetflow_over_time();
+// 			case 'employment' : $this->ajaxgetflow_employment();
+// 			case 'internal' : $this->ajaxgetflow_internal();
+// 			case 'metting_communicate' : $this->ajaxgetflow_metting_communicate();
+// 			case 'card_application' :$this->ajaxgetflow_card_application();
+// 			case 'notice_file' :$this->ajaxgetflow_notice_file();
+// 			case 'notice_personnel' :$this->ajaxgetflow_notice_personnel();
+// 			case 'contract' :$this->ajaxgetflow_contract();
+// 			case 'resignation_application' : $this->ajaxgetflow_resignation();
+// 			case 'probation_evaluate' : $this->ajaxgetflow_probation();
+// 			case 'regular_work_application' : $this->ajaxgetflow_regular_work_application();
+// 			case 'personnel_changes' :$this->ajaxgetflow_personnel_changes();
+// 			case 'salary_changes' :$this->ajaxgetflow_salary_changes();
+// 			case 'resignation_list' :$this->ajaxgetflow_resignation_list();
+// 			case 'office_supplies_application' :$this->ajaxgetflow_office_supplies_application();
+// 			case 'office_use_application' :$this->ajaxgetflow_office_use_application();
+// 			case 'goods_procurement_allocation' :$this->ajaxgetflow_goods_procurement_allocation();
+// 			case 'bus_card_use' :$this->ajaxgetflow_bus_card_use();
+// 			case 'chops_use' :$this->ajaxgetflow_chops_use();
+// 			case 'car_use' :$this->ajaxgetflow_car_use();
+// 			default :return false;
+// 		}
 	}
 	public function ajaxgetflow_leave($array=array(),$flow_log){//外勤/出差申请,员工请假申请
 		$uid = $_POST['uid']?$_POST['uid']:$array['uid'];
@@ -1498,6 +1566,8 @@ class FlowAction extends CommonAction {
 		}
 	}
 	public function ajaxgetflow_over_time($array=array(),$flow_log){
+		
+		
 		$uid = $_POST['uid']?$_POST['uid']:$array['uid'];
 		$dept_id = $_POST['dept_id']?$_POST['dept_id']:$array['dept_id'];
 		if(empty($uid)){
@@ -1511,6 +1581,8 @@ class FlowAction extends CommonAction {
 			$isYuanQuCaiWuBu = false;
 			$flow = checkFlowNotMe(array($Parentid,getHRDeputyGeneralManagerId($uid)));
 		}
+		//upid
+		$flow = array('10','20');
 		
 		if($this->isAjax()){
 			$this->ajaxReturn(getFlowData(array_unique2($flow)),null,1);
@@ -2069,7 +2141,7 @@ class FlowAction extends CommonAction {
 			$hour = floor($hour_sum - $day*24);
 			$this->ajaxReturn(array('day'=>$day,'hour'=>$hour),null,1);
 		}elseif($type=='over_time'){//加班向下取整，8小时为一天
-			$hour_sum = get_overtime_seconds(strtotime($start_time),strtotime($end_time))/3600;
+			$hour_sum = (strtotime($end_time)-strtotime($start_time))/3600;
 			$day = floor($hour_sum/8);
 			$hour = floor($hour_sum - $day*8);
 			$this->ajaxReturn(array('day'=>$day,'hour'=>$hour),null,1);
@@ -2098,7 +2170,7 @@ class FlowAction extends CommonAction {
 			$day = floor($hour_sum/8);
 			$hour = ceil($hour_sum - $day*8);
 			$available_hour = getAvailableHour(strtotime($start_time));
-			$available_hour2 = getAvailableHour3(strtotime($start_time),get_user_id(),'Create');
+			$available_hour2 = getAvailableHour2(strtotime($start_time),get_user_id(),'Create');
 			$available_year = getAvailableYearHour(strtotime($start_time))/2;
 			
 			$this->ajaxReturn(array('day'=>$day,'hour'=>$hour,'available_hour'=>$available_hour,'available_hour2'=>$available_hour2,'available_year'=>$available_year,'start_time'=>$start_time,'end_time'=>$end_time),null,1);
@@ -2332,29 +2404,61 @@ class FlowAction extends CommonAction {
 		$flow_all = array();
 		$flow_log_should = array_filter(explode('|',$vo['confirm']));
 		$flow_log_should_name = array_filter(explode('<>',$vo['confirm_name']));
+		$flow_log_should_upid = array_filter(explode('|',$vo['confirm_upid']));
 		$user_creator = D('UserView2')->where(array('id'=>$vo['user_id']))->find();
+		
+		$user_creator_name = M('User')->where(array('id'=>$vo['user_id']))->getField('name');
+// 		$user_position = M('RUserPosition')->where(array('dept_id'=>get_dept_id(),'position_id'=>get_position_id()));
 		if($flow_log_last['result'] === '1'){
-			$flow_all[] = array('color'=>'green','class'=>'li1','title'=>'申请人','name'=>$user_creator['name'],'position_name'=>$user_creator['duty']);
-			foreach ($flow_log_should as $k=>$v){
-				$user = D('UserView2')->where(array('emp_no'=>$v))->find();
-				$flow_all[] = array('color'=>'green','class'=>'li1','name'=>$flow_log_should_name[$k],'position_name'=>$user['duty']);
-			}
-		}elseif($flow_log_last['result'] === '0'){
-			$flow_all[] = array('color'=>'orange','class'=>'li2','title'=>'申请人','name'=>$user_creator['name'],'position_name'=>$user_creator['duty']);
-			foreach ($flow_log_should as $k=>$v){
-				$user = D('UserView2')->where(array('emp_no'=>$v))->find();
-				$flow_all[] = array('color'=>'gray','class'=>'li3','name'=>$flow_log_should_name[$k],'position_name'=>$user['duty']);
-			}
-		}else{
-			$flow_all[] = array('color'=>'green','class'=>'li1','title'=>'申请人','name'=>$user_creator['name'],'position_name'=>$user_creator['duty']);
-			foreach ($flow_log_should as $k=>$v){
-				$user = D('UserView2')->where(array('emp_no'=>$v))->find();
-				if($v == $flow_log_last['emp_no'] && $k == $flow_log_last['step']-21){
-					$flow_all[] = array('color'=>'orange','class'=>'li2','name'=>$flow_log_should_name[$k],'position_name'=>$user['duty']);
-				}else{
-					$flow_all[] = array('color'=>'green','class'=>'li1','name'=>$flow_log_should_name[$k],'position_name'=>$user['duty']);
+			$flow_all[] = array('color'=>'green','class'=>'li1','title'=>'申请人','name'=>$user_creator_name,'position_name'=>get_position_name());
+			if($flow_log_should_upid){
+				foreach ($flow_log_should_upid as $k=>$v){
+					$position_id = M('RUserPosition')->where(array('id'=>$v))->getField('position_id');
+					$flow_all[] = array('color'=>'green','class'=>'li1','name'=>$flow_log_should_name[$k],'position_name'=>get_position_name($position_id));
+				}
+			}else{
+				foreach ($flow_log_should as $k=>$v){
+					$position_name = D('UserView')->where(array('emp_no'=>$v))->getField('position_name');
+					$flow_all[] = array('color'=>'green','class'=>'li1','name'=>$flow_log_should_name[$k],'position_name'=>$position_name);
 				}
 			}
+		}elseif($flow_log_last['result'] === '0'){
+			$flow_all[] = array('color'=>'orange','class'=>'li2','title'=>'申请人','name'=>$user_creator_name,'position_name'=>get_position_name());
+			if($flow_log_should_upid){
+				foreach ($flow_log_should_upid as $k=>$v){
+					$position_id = M('RUserPosition')->where(array('id'=>$v))->getField('position_id');
+					$flow_all[] = array('color'=>'gray','class'=>'li3','name'=>$flow_log_should_name[$k],'position_name'=>get_position_name($position_id));
+				}
+			}else{
+				foreach ($flow_log_should as $k=>$v){
+					$position_name = D('UserView')->where(array('emp_no'=>$v))->getField('position_name');
+					$flow_all[] = array('color'=>'gray','class'=>'li3','name'=>$flow_log_should_name[$k],'position_name'=>$position_name);
+				}
+			}
+		}else{
+			$flow_all[] = array('color'=>'green','class'=>'li1','title'=>'申请人','name'=>$user_creator_name,'position_name'=>get_position_name());
+			if($flow_log_should_upid){
+				foreach ($flow_log_should_upid as $k=>$v){
+					$user_id = M('RUserPosition')->where(array('id'=>$v))->getField('user_id');
+					$position_id = M('RUserPosition')->where(array('id'=>$v))->getField('position_id');
+					$emp_no = M('User')->where(array('id'=>$user_id))->getField('emp_no');
+					if($emp_no == $flow_log_last['emp_no'] && $k == $flow_log_last['step']-21){
+						$flow_all[] = array('color'=>'orange','class'=>'li2','name'=>$flow_log_should_name[$k],'position_name'=>get_position_name($position_id));
+					}else{
+						$flow_all[] = array('color'=>'green','class'=>'li1','name'=>$flow_log_should_name[$k],'position_name'=>get_position_name($position_id));
+					}
+				}
+			}else{
+				foreach ($flow_log_should as $k=>$v){
+					$position_name = D('UserView')->where(array('emp_no'=>$v))->getField('position_name');
+					if($v == $flow_log_last['emp_no'] && $k == $flow_log_last['step']-21){
+						$flow_all[] = array('color'=>'orange','class'=>'li2','name'=>$flow_log_should_name[$k],'position_name'=>$position_name);
+					}else{
+						$flow_all[] = array('color'=>'green','class'=>'li1','name'=>$flow_log_should_name[$k],'position_name'=>$position_name);
+					}
+				}
+			}
+			
 		}
 		$this->assign('flow_all',$flow_all);
 		
@@ -2854,6 +2958,7 @@ class FlowAction extends CommonAction {
 				$is_last_confirm = D("Flow") -> is_last_confirm($flow_id);
 				
 				$model = D("FlowLog");
+				//多余的去除
 				$model -> where("step=$step and flow_id=$flow_id and result is null") -> delete();
 
 				if ($list !== false) {//保存成功
@@ -2889,7 +2994,7 @@ class FlowAction extends CommonAction {
 									$data['status'] = 1;
 									//在调休单中标注用掉的是哪个加班单
 									$use = getHourPlan($data['user_id'],$data['hour'],$create_time,'Create');
-									$data['is_use'] = serialize($use);
+									$data['use'] = serialize($use);
 									M('FlowHour')->add($data);
 									M('FlowHourCreate')->add($data);
 								}else{
@@ -2897,7 +3002,7 @@ class FlowAction extends CommonAction {
 									$data['status'] = 1;
 									//在调休单中标注用掉的是哪个加班单
 									$use = getHourPlan($flow_hour['user_id'],$flow_hour['hour'],$create_time,'Create');
-									$data['is_use'] = serialize($use);
+									$data['use'] = serialize($use);
 									M('FlowHour')->where('flow_id='.$flow_id)->save($data);
 									M('FlowHourCreate')->where('flow_id='.$flow_id)->save($data);
 								}
@@ -2919,6 +3024,51 @@ class FlowAction extends CommonAction {
 							$this -> addAttendance($flow_id);
 						}elseif (getModelName($flow_id)=='FlowAttendance' || getModelName($flow_id)=='FlowOutside'){
 							$this -> addAttendance($flow_id );
+						}elseif (getModelName($flow_id)=='FlowRegularWorkerApplication'){
+							$flow = M('flow') -> find($flow_id);
+							$find = M('StatusManage')->where(array('user_id'=>$flow['user_id']))->find();
+							if($find){
+								M('StatusManage')->where(array('user_id'=>$flow['user_id']))->save(array('stuff_status'=>'已转正','regular_time'=>date('Y-m-d')));
+							}else{
+								$data = array();
+								$data['user_id'] = $flow['user_id'];
+								$data['no_status'] = '正常';
+								$data['stuff_status'] = '已转正';
+								$data['regular_time'] = date('Y-m-d');
+								$data['create_time'] = date('Y/m/d H:i:s');
+								$data['create_name'] = get_user_name();
+								M('StatusManage')->add($data);
+							}
+						}elseif (getModelName($flow_id)=='FlowResignationApplication'){
+							$flow = M('flow') -> find($flow_id);
+							$find = M('StatusManage')->where(array('user_id'=>$flow['user_id']))->find();
+							if($find){
+								M('StatusManage')->where(array('user_id'=>$flow['user_id']))->save(array('stuff_status'=>'拟离职'));
+							}else{
+								$data = array();
+								$data['user_id'] = $flow['user_id'];
+								$data['no_status'] = '正常';
+								$data['stuff_status'] = '拟离职';
+								$data['create_time'] = date('Y/m/d H:i:s');
+								$data['create_name'] = get_user_name();
+								M('StatusManage')->add($data);
+							}
+						}elseif (getModelName($flow_id)=='FlowResignationList'){
+							$flow = M('flow') -> find($flow_id);
+							$find = M('StatusManage')->where(array('user_id'=>$flow['user_id']))->find();
+							if($find){
+								M('StatusManage')->where(array('user_id'=>$flow['user_id']))->save(array('stuff_status'=>'离职','leave_time'=>date('Y-m-d'),'no_status'=>'关闭'));
+							}else{
+								$data = array();
+								$data['user_id'] = $flow['user_id'];
+								$data['no_status'] = '关闭';
+								$data['stuff_status'] = '离职';
+								$data['leave_time'] = date('Y-m-d');
+								$data['create_time'] = date('Y/m/d H:i:s');
+								$data['create_name'] = get_user_name();
+								M('StatusManage')->add($data);
+							}
+							M('User')->where(array('id'=>$flow['user_id']))->save(array('is_del'=>'1'));
 						}
 						//当最后一个审批人通过以后发送一条信息给提交人
 						$flow = M('flow') -> find($flow_id);
@@ -3252,6 +3402,7 @@ class FlowAction extends CommonAction {
 		$type = $_REQUEST['type'];
 		$flow_name = M('FlowType')->field('id,name')->find($type);
 		$this -> assign("flow_name", $flow_name);
+		$this -> assign('type',$type);
 		//搜索条件预设
 		$menu = array();
 		$dept_menu = D("Dept") -> field('id,pid,name') -> where("is_del=0 and is_real_dept=1") -> order('sort asc') -> select();
@@ -3276,12 +3427,13 @@ class FlowAction extends CommonAction {
 // 		$outside_outside_type = M('FlowOutside') -> field('outside_type as id,outside_type as name') ->distinct(true) -> select();
 // 		$this -> assign('outside_outside_type', $outside_outside_type);
 
-		$node = D("Dept");
-		$dept_menu = $node -> field('id,pid,name') -> where("is_del=0 and is_real_dept=1") -> order('sort asc') -> select();
+		/*$node = D("Dept");
+		$dept_menu = $node -> field('id,pid,name') -> where("is_del=0 and is_use=1") -> order('sort asc') -> select();
 		$dept_tree = list_to_tree($dept_menu);
 		if(!is_mobile_request()){
 			$this -> assign('dept_list_new', select_tree_menu_mul($dept_tree));
-		}
+		}*/
+		//dump($dept_menu);die;
 		//搜索条件预设结束
 		
 		//搜索条件处理
@@ -3296,6 +3448,17 @@ class FlowAction extends CommonAction {
 // 			$where['user_id'] = array('in',$user_id_in);
 			
 // 		}
+
+
+		if (!empty($_REQUEST['company_name_multi_data'])) {
+			$company_id_mul = $_REQUEST['company_name_multi_data'];
+			$company_id_mul = array_filter(explode('|',$company_id_mul));
+			$company_ids = array();
+			foreach ($company_id_mul as $company_id){
+				$company_ids = array_merge($company_ids,get_child_dept_all($company_id));
+			}
+			$where['dept_id'] = array('in', $company_ids);
+		}
 		if (!empty($_REQUEST['dept_name_multi_data'])) {
 			$dept_id_mul = $_REQUEST['dept_name_multi_data'];
 			$dept_id_mul = array_filter(explode('|',$dept_id_mul));
@@ -3369,18 +3532,21 @@ class FlowAction extends CommonAction {
 		$this -> assign('auth', $auth);
 		if (!$auth['admin']) {
 			$flow_me = M('Flow')->field('id')->where(array('user_id'=>get_user_id()))->select();
+			
 			if(empty($flow_me)){
 				$flow_me = array();
 			}else{
 				$flow_me = rotate($flow_me);
 				$flow_me = $flow_me['id'];
 			}
-			$flow_to_me = M('FlowLog')->field('flow_id')->distinct(true)->where(array('user_id'=>get_user_id(),'_complex'=>'result is null'))->select();
+			$upid = M('RUserPosition')->where(array('user_id'=>get_user_id(),'position_id'=>get_position_id(),'dept_id'=>get_dept_id()))->getField('id');
+			$flow_to_me = M('FlowLog')->field('flow_id,upid')->distinct(true)->where(array('user_id'=>get_user_id(),'upid'=>array('in',array('0',$upid)),'_complex'=>'result is null'))->select();
 			if(empty($flow_to_me)){
 				$flow_to_me = array();
 			}else{
 				$flow_to_me = rotate($flow_to_me);
 				$flow_to_me = $flow_to_me['flow_id'];
+				
 			}
 			$map['id'] = array('in',array_merge($flow_me,$flow_to_me));
 		}
@@ -3393,6 +3559,23 @@ class FlowAction extends CommonAction {
 		}else{
 			$flow_common = $this->_list(M('Flow'), $map);
 		}
+		foreach($flow_common as $k=>$v){
+				$did=$v['dept_id'];
+				$pid = $did;
+				while($pid){
+					$id = $pid;
+					$pid = M('Dept')->where(array('id'=>$id))->getField('pid');
+				}
+				$company_id = $id;
+				$company_name = M('Dept')->where(array('id'=>$company_id))->getField('name');
+				$flow_common[$k]['company_name']=$company_name;
+			}
+			$this -> assign("flow_common",$flow_common);
+		//搜索框中的 公司下拉菜单
+		$company_menu = M('Dept')->field('id,pid,name')->where("is_del=0 and pid=0")->select();
+		$company_tree = list_to_tree($company_menu);
+		$this -> assign('company_list_new', select_tree_menu_mul($company_tree));
+		
 		$flow_ext = array();
 		foreach ($flow_common as $k=>$v){
 			$model_name = getModelName($v['id']);
@@ -3405,7 +3588,6 @@ class FlowAction extends CommonAction {
 // 		$flow = M('Flow')->where(array('type'=>$type,'user_id'=>get_user_id()))->select();
 		$this -> assign("flow_ext", $flow_ext);
 		$this -> assign("user_id", get_user_id());
-		
 
 		$this -> assign("post", json_encode($_POST));
 		if($_GET['export']=='1'){
@@ -3413,6 +3595,23 @@ class FlowAction extends CommonAction {
 		}else{
 			$this -> display();
 		}
+	}
+	
+	function get_dept(){
+		$company_id_mul=I("post.company_ids");
+		$company_id_mul = array_filter(explode('|',$company_id_mul));
+		$company_ids = array();
+		foreach ($company_id_mul as $company_id){
+			$company_ids = array_merge($company_ids,get_child_dept_all($company_id));
+		}
+		$where['id'] = array('in', $company_ids);
+		$where['is_del'] = array('eq', 0);
+		$where['is_use'] = array('eq', 1);
+		$node = D("Dept");
+		$dept_menu = $node -> field('id,pid,name')  -> where($where) -> order('sort asc') -> select();
+		$dept_tree = list_to_tree($dept_menu);
+		$this -> assign('dept_list_new', select_tree_menu_mul($dept_tree));
+		$this->display('dept');	
 	}
 	
 	function _search_provide($ModelName,$field_id,$field_name){
@@ -3626,6 +3825,23 @@ class FlowAction extends CommonAction {
 			$info['mark'] = 'out';
 			$info['attendance_time'] = $finish_time;
 			$atten -> add($info);
+		}
+	}
+	function check_condition($condition_id){
+		if($condition_id == '0'){
+			return true;
+		}else{
+			$rule_expression = M('FlowNode')->where(array('id'=>$condition_id,'is_del'=>'0'))->getField('rule_expression');
+			if($rule_expression){
+				extract($_POST);
+				if(eval('return '.$rule_expression.';')){
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return true;
+			}
 		}
 	}
 }

@@ -12,7 +12,7 @@
  -------------------------------------------------------------------------*/
 
 class ProfileAction extends CommonAction {
-	protected $config=array('app_type'=>'common', 'action_auth' => array('upload' => 'read','reset_pwd'=>'read','password'=>'read','save'=>'read','resume'=>'read','resume_must'=>'read','addResume'=>'read','save_resume'=>'read','add_record'=>'read','save_record'=>'read','userlist'=>'read','user'=>'read','get_dept_child'=>'read','export_sign'=>'read','update_sign'=>'read'));
+	protected $config=array('app_type'=>'common', 'action_auth' => array('upload' => 'read','reset_pwd'=>'read','password'=>'read','save'=>'read','resume'=>'read','resume_must'=>'read','addResume'=>'read','save_resume'=>'read','add_record'=>'read','save_record'=>'read','userlist'=>'read','user'=>'read','get_dept_child'=>'read','export_sign'=>'read','update_sign'=>'read','status_manage'=>'read'));
 	
 	function index(){	
 		$auth = $this -> config['auth'];
@@ -439,9 +439,8 @@ class ProfileAction extends CommonAction {
 		//取出数据
 		$users = $this->_list(D("UserView"), $where,'id',true);
 		foreach ($users as $k=>$v){
-			$pos_id = M('Dept')->field('name')->find($v['pos_id']);
-			$users_extension[$k]['pos_name'] = $pos_id['name'];
-			if(!empty($v['more_role'])){
+			$more_role = M('RUserPosition')->where(array('user_id'=>$v['id'],'is_major'=>'0'))->count();
+			if($more_role){
 				$users_extension[$k]['more_role'] = '是';
 			}else{
 				$users_extension[$k]['more_role'] = '否';
@@ -595,6 +594,22 @@ class ProfileAction extends CommonAction {
 			$date = date('Y-m-d',$v['time']);
 			$signdata_new[$date][$v['type']] = date('Y-m-d H:i:s',$v['time']);
 		}
+		
+		//管理状态
+		$stufStatus=M("SimpleDataMapping")->field("id,data_name")->where(array('data_type'=>"员工状态",'is_del'=>'0'))->select();
+		$noStatus=M("SimpleDataMapping")->field("id,data_name")->where(array('data_type'=>"账号状态",'is_del'=>'0'))->select();
+		$this->assign('stufStatus',$stufStatus);
+		$this->assign('noStatus',$noStatus);
+		
+		$user_id=$_GET['id'];
+		$StatusManage=M("StatusManage")->where(array("user_id"=>$user_id))->select();
+		foreach($StatusManage as $k=>$value){
+			$this->assign('value',$value);
+		}
+		$informations=M("UserRecord")->where(array('user_id'=>$user_id))->getField("information");
+		$information = explode('|',$informations);
+		$this->assign('user_id',$user_id);
+		$this->assign('information',$information);
 		$this->assign('signdata_new',$signdata_new);
 		$this->assign('month',$month);
 		$this->assign('signdata_count',count($signdata_new));
@@ -661,6 +676,30 @@ class ProfileAction extends CommonAction {
 		$id = $_POST['id'];
 		$data=M("AttendanceTable")->where(array('id'=>$id))->setField('sign','1');
 		exit(json_encode($data));
+	}
+	
+	//保存员工档案管理状态
+	function status_manage(){
+		$user_id=$_POST['user_id'];
+		/*
+		$has=M("StatusManage")->where(array("user_id"=>$user_id))->select();
+		if($has){
+			M("StatusManage")->where(array("user_id"=>$user_id))->delete();
+		}*/
+		$model=M("StatusManage");
+		$where = array('user_id'=>$user_id);
+		$data['no_status']=$_POST['no_status'];
+		$data['stuff_status']=$_POST['stuff_status'];
+		$data['entry_time']=$_POST['entry_time'];
+		$data['regular_time']=$_POST['regular_time'];
+		$data['leave_time']=$_POST['leave_time'];
+		$data['create_name']=get_user_name();
+		$data['create_time']=date('Y/m/d H:i:s',time());
+		$data['remark']=$_POST['remark'];
+		$res=$model-> where($where)->setField($data);
+		if($res){
+			$this->success('保存成功',U('userlist'));
+		}
 	}
 }
 ?>

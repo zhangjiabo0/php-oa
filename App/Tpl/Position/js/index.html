@@ -1,47 +1,155 @@
+<script type="text/javascript" src="__PUBLIC__/js/calendar2.js"></script>
 <script type="text/javascript">
-	function add() {
-		$("#opmode").val("add");
-		$("#id").val("");
-		if (check_form("form_data")){
-			sendForm("form_data", "{:U('save')}", "__URL__");
-		}
+	$.fn.toggle = function( fn, fn2 ) {
+	    var args = arguments,guid = fn.guid || $.guid++,i=0,
+	    toggle = function( event ) {
+	      var lastToggle = ( $._data( this, "lastToggle" + fn.guid ) || 0 ) % i;
+	      $._data( this, "lastToggle" + fn.guid, lastToggle + 1 );
+	      event.preventDefault();
+	      return args[ lastToggle ].apply( this, arguments ) || false;
+	    };
+	    toggle.guid = guid;
+	    while ( i < args.length ) {
+	      args[ i++ ].guid = guid;
+	    }
+	    return this.click( toggle );
 	}
-
-	function del() {
-		var vars = $("#form_data").serialize();
+	$('#all').click(function(){
+		if(this.checked){                                     
+			$("[name='id[]']:checkbox").prop("checked",true);  
+		}else{
+			$("[name='id[]']:checkbox").prop("checked",false);  
+		}	
+	});
+	function add() {
+		window.open("{:U('add')}", "_self");
+	}
+	function show_edit_dialog(id,name,is_use){
+		$("#tc_lbbj").show();
+		$("#id").val(id);
+		$("#position_name").val(name);
+		$("#is_use").val(is_use);
+		validate();
+		$(".bottom_sp3").click(function(){
+			$("#tc_lbbj").hide();	
+		})	
+		$(".bottom_sp4").click(function(){
+			window.onbeforeunload = null;
+			if (check_form("form_data")) {
+				sendForm("form_data", "{:U('update')}");
+			}
+		})	
+	}
+	/* $(".a_lbbj").click(function(){
+		alert();
+		$("#tc_lbbj").show();
+		var edit_is_del = $(this).prev().val();
+		var edit_position_name = $(this).prev().prev().val();
+		alert(edit_position_name);
+		$("#position_name").val(edit_position_name);
+		$("#is_del").val(edit_is_del);
+		$(".bottom_sp3").click(function(){
+			$("#tc_lbbj").hide();	
+		})	
+		$(".bottom_sp4").click(function(){
+			alert();
+			$("#tc_lbbj").hide();	
+		})	
+	}) */
+	$("#a_lbtj").click(function(){
+		$('#bj1').text('添加');
+		$("#tc_lbbj").show();
+		validate();
+		$(".bottom_sp3").click(function(){
+			$("#tc_lbbj").hide();	
+		})
+		$(".bottom_sp4").click(function(){
+			window.onbeforeunload = null;
+			if (check_form("form_data")) {
+				sendForm("form_data", "{:U('insert')}");
+			}
+			/* alert();
+			$("#tc_lbbj").hide(); */
+		})
+	})
+	function distribute(position_id){
+		$.ajax({
+			type:'post',
+			async:false,
+			url:"{:U('list_dept_checkbox')}",
+			data:{position_id:position_id},
+			success:function(result){
+				$(".tc_ul_div").html(result.data);
+				$(".tc_ul_div img").each(function(){
+					$(this).toggle(function(){
+						$(this).parent('li').children('ul').slideDown()
+					},function(){
+						$(this).parent('li').children('ul').slideUp()
+					})
+				})
+			},
+			error:function(){
+				
+			}
+		})
+		$("#tc_fpbm").show();
+		$("#position_id").val(position_id);
+		$(".bottom_sp1").click(function(){
+			$("#tc_fpbm").hide();	
+		})
+		$(".bottom_sp2").click(function(){
+			window.onbeforeunload = null;
+			if (check_form("form_data3")) {
+				sendForm("form_data3", "{:U('distribute')}");
+			}
+		})
+	}
+	function del(){
+		var vars = $("#form_data2").serialize();
 		ui_confirm('确定要删除吗?',function(){
 			sendAjax("{:U('del')}", vars, function(data) {
 				if (data.status) {
 					ui_alert(data.info,function(){
 						location.reload();
-					});									
+					});
 				}
 			});
 		});
 	}
-
-	function save() {
-		if (check_form("form_data")) {
-			sendForm("form_data", "{:U('save')}");
-		}
-	}
-
-	function showdata(result) {
-		for (var s in result.data) {
-			set_val(s, result.data[s]);
-		}
-		$("#opmode").val("edit");
-	}
-
-	$(document).ready(function() {
-		set_return_url();
-		$(".sub_left_menu tbody tr").click(function() {
-			$(".sub_left_menu  tr.active").removeClass("active");
-			$(this).attr("class", "active");
-			sendAjax("{:U('read')}", "id=" + $(this).attr("id"), function(data) {
-				showdata(data);
-			});
-			return false;
+	function validate(){
+	    $.formValidator.initConfig({formID:"form_data",debug:false,submitOnce:true,
+	        onError:function(msg,obj,errorlist){
+	       		alert(msg);
+	    	},
+	    	submitAfterAjaxPrompt : "正在进行校验，请稍候"
 		});
-	}); 
+	    $("#position_name").formValidator({
+	        tipID:"position_nameTip",
+	        empty:false,
+	        onShow:" ",
+	        onFocus:" ",
+	        onCorrect:"<span style='color:green;'>√</span>"
+	    }).inputValidator({
+	        min:1,max:255,
+	        onErrorMin:"岗位名称不能为空",
+	        onErrorMax:"岗位名称超过最大长度"
+	    });
+	    var id = $("#id").val();
+	    $("#position_name").ajaxValidator({
+	    	dataType : "json",
+            type : "GET",
+			isValid : true,
+            async : false,
+            data:{id:id},
+            url : "{:U('validate')}",
+            success : function(data){
+                if( data.status == 1 ) return false;
+                if( data.status == 0 ) return true;
+                return false;
+            },
+            error: function(jqXHR, textStatus, errorThrown){alert("服务器没有返回数据，可能服务器忙，请重试"+errorThrown);},
+            onError : "已存在该岗位名称",
+            onWait : "正在对岗位名称进行合法性校验，请稍候"
+	    });
+	}
 </script>

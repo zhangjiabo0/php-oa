@@ -10,18 +10,11 @@
 
   Support: https://git.oschina.net/smeoa/smeoa               
  -------------------------------------------------------------------------*/
-/*
- * 测试关系表
- */
-class UserRecordModel extends RelationModel {
-	protected $_link=array(
-		'User'=>array(
-				'mapping_type'=>HAS_MANY,
-				'class_name'=>'User',
-				'foreign_key'=>'rank_id',
-				'mapping_fields'=>'name',
-				'as_fields'=>'name:user_name'
-		),
-	);
+
+class FlowVersionViewModel extends ViewModel {
+	public $viewFields=array(
+		'FlowVersion'=>array('id','flow_type_setting_id','status','version','create_time','version_remark','is_del'),
+		'FlowTypeSetting'=>array('flow_name','_on'=>'FlowVersion.flow_type_setting_id=FlowTypeSetting.id')
+		);
 }
 ?>

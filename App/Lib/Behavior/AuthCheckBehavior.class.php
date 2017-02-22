@@ -113,11 +113,16 @@ class AuthCheckBehavior extends Behavior {
 				$auth = $this -> get_auth();
 				break;
 		}
-		//die;
+		//获取本次访问的url路径
+		$url = $this -> convertUrlQuery(parse_url(__SELF__,PHP_URL_QUERY));
+		$urls = $url['m'].'/'.$url['a'];
+		$urls .= isset($url['fid']) ? ('?fid='.$url['fid']) : isset($url['type']) ? ('?type='.$url['type']) : '' ;
+		$urlInfo = M('Privilege')->where(array('url'=>$urls,'is_del'=>'0'))->find();
 		// 当前访问Action中配置的权限是否存在
-		if ($auth[$action_auth[ACTION_NAME]]) {
+			$this -> config['menu'] = $urlInfo;
 			$this -> config['auth'] = $auth;
 			return true;
+		if (!empty($urlInfo)) {
 		} else {
 			$auth_id = session(C('USER_AUTH_KEY'));
 			if (!isset($auth_id)) {
@@ -143,7 +148,7 @@ class AuthCheckBehavior extends Behavior {
 		$access_list_admin = array_filter(array_combine($module_list, $access_list['admin']));
 		$access_list_write = array_filter(array_combine($module_list, $access_list['write']));
 		$access_list_read = array_filter(array_combine($module_list, $access_list['read']));
-
+		
 		$module_name = strtolower(MODULE_NAME);
 		$auth['admin'] = array_key_exists($module_name, $access_list_admin) || array_key_exists("##" . $module_name, $access_list_admin);
 
@@ -176,6 +181,16 @@ class AuthCheckBehavior extends Behavior {
 			return true;
 		}
 		return false;
+	}
+	
+	function convertUrlQuery($query){
+		$queryParts = explode('&', $query);
+		$params = array();
+		foreach ($queryParts as $param) {
+			$item = explode('=', $param);
+			$params[$item[0]] = $item[1];
+		}
+		return $params;
 	}
 
 }

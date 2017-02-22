@@ -1,0 +1,399 @@
+<script type="text/javascript">
+function bj(){
+	$('.lc_bj').click(function(){
+		//是否已经设置过
+		var nrd = $(this).attr('nrd').trim();
+		var pn = $(this).parent().parent().parent().next();
+		if(nrd != ""){
+			var nrv = $(this).attr('nrv').trim();
+			//岗位节点
+			switch(nrd){
+				case "2" :
+					pn.find('div[class="lc_jdmc"]').eq(1).show();
+					pn.find("select[name='node_result2']").val(nrv);
+					break;
+				case "3" :
+					var gw = nrv.split('|');
+					var this_ = this;
+					$.ajax({
+						type: "post",
+						url: "{:U('ajax_get_dept')}",
+						data:{pid:gw[0],dept_id:gw[1]},
+						dataType: "json",
+						success:function(result){
+							$(".content1").html(result.data);
+							$(this_).parent().parent().parent().parent().find("#dept_name_multi").val(result.info);
+							$(this_).parent().parent().parent().parent().find("#dept_name_multi_data").val('|'+gw[1]+'|');
+						}
+					})
+					
+					$.post("{:U('ajax_get_pos')}",{'dep_id':gw[1]},function(data){
+						pn.find(".get_pos").html(data).val(gw[2]);
+					});
+					pn.find('div[class="lc_jdmc"]').eq(2).show();
+					$.post("{:U('valiDetp')}",{"nrv":nrv},function(data){
+						$(".node_result3_1").val(data.data[0].id);
+					});
+					break;
+				case "4" :
+					
+					$.post("{:U('assocUser')}",{"id":nrv},function(data){
+						pn.find("input[name='node_result4']").val(data.data.name);
+						pn.find("input[name='node_result4']").attr('uid',data.data.id);
+					});
+					break;
+				default :
+					pn.find(".lc_select").val(nrd);
+					pn.find(".lc_jdmc").eq(nrd-1).val(nrv).show();
+					break;
+				}
+		}
+		$(this).parent().parent().parent().hide();
+		$(this).parent().parent().parent().siblings().show();
+		$('.lc_bc2').click(function(){
+			$(this).parent().parent().siblings().show();
+			$(this).parent().parent().hide();	
+		});		
+ 	});
+
+	$('.szlzgz').click(function(){
+		$(this).parent().siblings('.lc_sz').show();
+	});	
+	
+	//删除
+	$('.sc').click(function(){
+		$(this).parent().parent().parent().remove();
+		var id = $(this).parent().parent().parent().find(".lc_ul_div3 .lc_bc input[name='ids']").val().trim();
+		$.post("{:U('delNode')}",{'id':id,'flag':'1'},function(data){
+			ui_info(data.info);
+		});
+	});
+	
+	$('.lc_select').change(function(){
+		$(this).parent().parent().find('div[class="lc_jdmc"]').hide();
+		var v=$(this).find("option:selected").text();
+		if (v ==  "连续领导节点" ){
+			$(this).parent().next().find('div[class="lc_jdmc"]').eq(0).show();
+		}else if (v == "规则节点"){ 
+			$(this).parent().next().find('div[class="lc_jdmc"]').eq(1).show();
+		}else if (v == "岗位节点"){ 
+			showCompany("",1);
+			$(this).parent().next().find('div[class="lc_jdmc"]').eq(2).show();
+		}else if (v == "个人节点"){ 
+			$(this).parent().next().find('div[class="lc_jdmc"]').eq(3).show();
+		}else if (v == "领导节点"){ 
+			$(this).parent().next().find('div[class="lc_jdmc"]').eq(4).show();
+		}
+	});
+	
+	
+	$('.qx').click(function(){
+		$(this).parent().parent().siblings('.lc_ul_div3').show();
+		$(this).css('color','#ccc');
+		$(this).siblings('.hf').css('color','#ff0000');
+		$(this).siblings().not('.hf').css('color','#ccc');
+		var id = $(this).parent().parent().parent().find(".lc_ul_div3 .lc_bc input[name='ids']").val().trim();
+		$.post("{:U('quitNode')}",{'id':id,'flag':'0'},function(data){
+			ui_info(data.info);
+		});
+	});
+	$('.hf').click(function(){	
+		$(this).parent().parent().siblings('.lc_ul_div4').hide();
+		$(this).css('color','#22be9b');
+		$(this).siblings().css('color','#22be9b');
+		var id = $(this).parent().parent().parent().find(".lc_ul_div3 .lc_bc input[name='ids']").val().trim();
+		$.post("{:U('quitNode')}",{'id':id,'flag':'1'},function(data){
+			ui_info(data.info);
+		});
+	});
+	$(".lc_ul li").each(function(e){
+		$(this).attr('node',e);
+	});
+	$(".lc_head_list li").each(function(e){
+		$(this).attr('node',e+1);
+	});
+	$(".lc_con_ul .lc_con_li").each(function(e){
+		$(this).attr('node',e+1);
+	});
+}
+bj();
+var is_new = "{$is_new}";
+if(!is_new){
+	$('.lc_bj').click();
+	$('.szlzgz').click();
+}
+
+//向下插入
+	$(".xxcr").click(function(){
+		var liuzhuan_html = $("select[name='liuzhan[]']").html();
+		$(this).parent().parent().parent().after('<li><div class="lc_ul_div3"><div class="lc_ul_div3_1"><div class="lc_ks1">待填</div><div class="lc_ks2">待填<div><a class="lc_bj" nrd nrv>(编辑</a><a class="lc_gjjd">关键节点)</a></div></div></div><div class="lc_ul_div3_2"><div class="lc_xz"><div class="lc_jd"><div>节点类型</div><select class="lc_select"><option>请选择</option><option>连续领导节点</option><option>规则节点</option><option>岗位节点</option><option>个人节点</option><option>领导节点</option></select></div><div class="lc_jdmc_k"><div class="lc_jdmc"><div class="lc_jdmc_div1">节点名称</div><select><option>连续上级至一级部门负责人（来自原版节点配置）</option></select><div class="lc_jdmc_div2">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div1">节点名称</div><select><option>分管副总裁（来自原版节点配置）</option></select><div class="lc_jdmc_div2">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div0"><div class="lc_jdmc_div1">公司</div><select><option>集团总部</option><option>杭州基地</option></select></div><div class="lc_jdmc_div0"><div class="lc_jdmc_div1">部门</div><select><option>总经办</option><option>技术部</option></select></div><div class="lc_jdmc_div0"><div class="lc_jdmc_div1">岗位</div><select><option>执行总裁</option></select></div><div class="lc_jdmc_div3">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div1">节点名称</div><select><option>周周（员工自动完成控件）</option></select><div class="lc_jdmc_div2">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div1">岗位</div><select><option>经理</option></select><div class="lc_jdmc_div2">保存</div></div></div></div><div class="lc_bc"><div class="lc_bc1">保存</div><div class="lc_bc2">取消</div></div></div></div></div><div class="lc_ul_div4"><div class="lc_ul_div3_1"><div class="lc_ks1">待填</div><div class="lc_ks2">待填</div></div></div><div class="lc_ul_div2"><div class="lc_box"><input type="checkbox" id="lc_tx"/><label for="lc_tx">提醒</label><input type="checkbox" id="lc_hb"/><label for="lc_hb">合并重复</label></div><div class="lc_sz"><select><option selected>请选择</option>'+liuzhuan_html+'</select><div onClick="tiaojian($(this))">保存</div></div><div class="lc_kz"><a class="szlzgz">设置流转规则</a><a class="sy">上移</a><a class="xy">下移</a><a class="xxcr" onClick="xx($(this))">向下插入</a><a class="qx">取消</a><a class="hf">恢复</a><a class="sc">删除</a></div></div></li>');
+		bj();
+	});	
+
+function xx(a){
+	a.parent().parent().parent().after('<li><div class="lc_ul_div3"><div class="lc_ul_div3_1"><div class="lc_ks1">待填</div><div class="lc_ks2">待填<div><a class="lc_bj">(编辑</a><a class="lc_gjjd">关键节点)</a></div></div></div><div class="lc_ul_div3_2"><div class="lc_xz"><div class="lc_jd"><div>节点类型</div><select class="lc_select"><option>请选择</option><option>连续领导节点</option><option>规则节点</option><option>岗位节点</option><option>个人节点</option><option>领导节点</option></select></div><div class="lc_jdmc_k"><div class="lc_jdmc"><div class="lc_jdmc_div1">节点名称</div><select><option>连续上级至一级部门负责人（来自原版节点配置）</option></select><div class="lc_jdmc_div2">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div1">节点名称</div><select><option>分管副总裁（来自原版节点配置）</option></select><div class="lc_jdmc_div2">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div0"><div class="lc_jdmc_div1">公司</div><select><option>集团总部</option><option>杭州基地</option></select></div><div class="lc_jdmc_div0"><div class="lc_jdmc_div1">部门</div><select><option>总经办</option><option>技术部</option></select></div><div class="lc_jdmc_div0"><div class="lc_jdmc_div1">岗位</div><select><option>执行总裁</option></select></div><div class="lc_jdmc_div3">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div1">节点名称</div><select><option>周周（员工自动完成控件）</option></select><div class="lc_jdmc_div2">保存</div></div><div class="lc_jdmc"><div class="lc_jdmc_div1">岗位</div><select><option>经理</option></select><div class="lc_jdmc_div2">保存</div></div></div></div><div class="lc_bc"><div class="lc_bc1">保存</div><div class="lc_bc2">取消</div></div></div></div></div><div class="lc_ul_div4"><div class="lc_ul_div3_1"><div class="lc_ks1">待填</div><div class="lc_ks2">待填</div></div></div><div class="lc_ul_div2"><div class="lc_box"><input type="checkbox" id="lc_tx"/><label for="lc_tx">提醒</label><input type="checkbox" id="lc_hb"/><label for="lc_hb">合并重复</label></div><div class="lc_sz"><select><option>请选择</option></select><div onClick="tiaojian($(this))">保存</div></div><div class="lc_kz"><a class="szlzgz">设置流转规则</a><a class="sy">上移</a><a class="xy">下移</a><a class="xxcr" onClick="xx($(this))">向下插入</a><a class="qx">取消</a><a class="hf">恢复</a><a class="sc">删除</a></div></div></li>');
+	bj();
+}
+
+//默认流程
+$('.lc_con_li').eq(0).show();
+$('.mr_tj').click(function(){
+	$(".lc_top span").parent().css({'background':'#e5e5e5','color':'#333'});
+	$('.lc_top ul').append('<li class="aa"><span>默认流程</span><img class="mr_gb" onClick="t($(this))" src="__PUBLIC__/img/new_versions/mr_gb.png"/></li>');
+	var m=$('.lc_top span').index(this);
+	$('.lc_con_ul').append('<li class="lc_con_li"><div class="lc_con"><div class="lc_div1"><label>流程分支条件：</label><select><option>请选择</option></select></div><ul class="lc_ul"><li><div class="lc_ul_div1"><div class="lc_ks1">创建人</div><div class="lc_ks2">创建人</div></div><div class="lc_ul_div2"><div class="lc_box"><input type="checkbox" id="lc_tx"/><label for="lc_tx">提醒</label><input type="checkbox" id="lc_hb"/><label for="lc_hb">合并重复</label></div><div class="lc_kz"><a class="sy"></a><a class="xy"></a><a class="xxcr" onClick="xx($(this))">向下插入</a></div></div></li><li><div class="lc_ul_div1"><div class="lc_ks1">结束</div><div class="lc_ks2">结束</div></div><div class="lc_ul_div2"><div class="lc_box"><input type="checkbox" id="lc_tx"/><label for="lc_tx">提醒</label><input type="checkbox" id="lc_hb"/><label for="lc_hb">合并重复</label></div><div class="lc_kz"><a></a><a></a><a class="xxcr" onClick="xx($(this))"></a></div></div></li></ul></div></li>');	
+	
+	$('.lc_con_li').hide();
+	$('.lc_con_li').eq(m).show();
+	$('.lc_head_list li').attr('msg','').eq(m).attr('msg','ok');
+	bj();
+});
+//联想员工姓名
+$(".lc_ul").on('keyup','input[name="node_result4"]',function(){
+	var nr4 = $(this).val().trim();
+	if(nr4 == ""){return false;}
+	var tmp = "";
+	var this_ = this;
+	$.post("{:U('assocName')}",{'name':nr4},function(data){
+		for(s in data.data){
+			tmp += "<li><a uid="+data.data[s].id+">"+data.data[s].name+"</a></li>";
+		}
+		//$(".nrassoc").html(tmp).show();
+		$(this_).parent().parent().find(".nrassoc").html(tmp).show();
+	});
+})
+//选中联想的员工姓名
+$(".lc_ul").on('click',".nrassoc a",function(){
+	$(this).parent().parent().prev().find("input[name='node_result4']").val($(this).text());
+	$(this).parent().parent().prev().find("input[name='node_result4']").attr('uid',$(this).attr('uid'));
+	$(".nrassoc").html("");
+})
+//岗位修改取消
+$(".lc_ul").on('click',".lc_bc22",function(){
+	$(this).parent().parent().parent().parent().parent().siblings().show();
+	$(this).parent().parent().parent().parent().parent().hide();	
+})
+//关键节点
+$(".lc_ul").on('click',".lc_gjjd",function(){
+	$(this).parent().parent().parent().hide();
+	$(this).parent().parent().parent().siblings().show();
+	$('.lc_bc2').click(function(){
+		$(this).parent().parent().siblings().show();
+		$(this).parent().parent().hide();	
+	});		
+})
+//显示公司信息
+function showCompany(obj,i){
+	var id = (i == 1) ? '0' : $(obj).val();
+	var nr3 = $('.node_result3_'+i);
+	nr3.html("").append("<option value='-1'>请选择</option>");
+	if(id == '-1'){
+		ui_info('请选择公司');
+		return false;
+	}
+	$.post("{:U('frameInfo')}",{'id':id},function(data){
+		for(s in data.data){
+			nr3.append("<option value='"+data.data[s].id+"'>"+data.data[s].name+"</option>");
+		}
+	},'json');
+}
+
+//保存条件
+function tiaojian(obj){
+	var id = $(obj).parent().attr('id');
+	var fnode = $(obj).prev().val();//条件id
+	var cid = $("#cid").val();//company_config的id或position_config的id
+	var type = $("#type").val();//配置类型，1公司通用 2部门配置
+	var fenzhi = $(".processList .lc_con_li[display!='none']").find("select[name='fenzhi']").val();
+	var remind = $(obj).parent().prev().find(".lc_tx").is(":checked") ? '1' : '0';//提醒
+	var merge = $(obj).parent().prev().find(".lc_hb").is(":checked") ? '1' : '0';//合并
+	var step = $(obj).parent().parent().parent().attr('node');//步骤
+	var sheet = $('.lc_head_list li[msg="ok"]').attr('node');//当前标签页
+	$.post("{:U('editProcess')}",
+			{'id':id,'fnode': fnode,'cid':cid,'type':type,'fenzhi':fenzhi,'step':step,'remind':remind,'merge':merge,'sheet':sheet},
+			function(data){
+		if(!data.status){
+			ui_error("操作失败");
+		}else{
+			ui_info(data.info);
+		}
+		if(data.data){
+			$(obj).parent().attr('id',data.data);
+			$(obj).parent().parent().prev().prev().find("[name='ids']").val(data.data);
+		}
+	},'json');
+}
+//换位置之后修改step
+function changeOpt(){
+	var fid = $("#fid").val();//流程id
+	var type = $("#type").val();//配置类型，1公司通用 2部门配置
+	var sheet = $('.lc_head_list li[msg="ok"]').attr('node');//便签页
+	
+}
+//保存连续领导
+function saveLead(obj){
+	var po = $(obj).parent().prev();
+	var id = $(obj).prev().val().trim();
+	var lc = $(obj).parent().parent().parent().parent().find('.lc_select').val().trim();
+	if(lc == '0'){
+		ui_info('请选择节点类型!');
+		return false;
+	}
+	var nr,ni;
+	switch(lc){
+		case '1' :
+			ni = 1;
+			nr = po.find("select[name='node_result1']").val().trim();
+			break;
+		case '2' :
+			ni = 2;
+			nr = po.find("select[name='node_result2']").val().trim();
+			break;
+		case '3' :
+			ni = 3;
+			var nr31 = po.prev().prev().find("select[name='company_id']").val().trim();
+			if(nr31 == ''){ui_info('请选择公司');return false;}
+			var nr32 = po.prev().find("input[name='dept_name_multi_data']").val().trim();
+			if(nr32 == ''){ui_info('请选择部门');return false;}
+			var nr33 = po.find("select[name='node_result3_3']").val().trim();
+			if(nr33 == ''){ui_info('请选择岗位');return false;}
+			nr = nr31 + '' + nr32 + '' + nr33;
+			break;
+		case '4' :
+			ni = 4;
+			nr = po.find("input[name='node_result4']").attr('uid').trim();
+			break;
+		default :
+			ni = '';
+			nr = "";
+			ui_info('请选择节点类型！！！');return false;
+			break;
+	}
+	$.post("{:U('save_result')}",{'id':id,'result':nr,'result_id':ni},function(data){
+		ui_info(data.info);
+	});
+}
+//获取公司下面所有岗位
+$(".change_dept").change(function(){
+	$(this).parent().next().find(".w").val('')
+	$(this).parent().next().find(".wd").val('')
+	var pid=$(this).val();
+	$.ajax({
+		type: "post",
+		url: "{:U('ajax_get_dept')}",
+		data:{pid:pid},
+		dataType: "json",
+		success:function(result){
+			$(".content1").html(result.data);
+			
+		}
+	})
+})
+//选择岗位
+function show(type,obj){
+	var s = '';
+	var data = '|';
+	if(type == 'add'){
+		$(obj).parent().prev().find('input[type="radio"]:checked').each(function(){
+			s += $(this).attr('name2')+';';
+			data += $(this).val()+'|';
+	    });
+		$(obj).parent().parent().parent().find(".w").val(s);
+		$(obj).parent().parent().parent().find(".wd").val(data);
+	    $('.content2').hide();
+	}else if(type == 'edit'){
+		$('div[class="content1"] input[type="checkbox"]:checked').each(function(){
+			s += $(obj).attr('name2')+';';
+			data += $(obj).val()+'|';
+	    });
+		$("#tc_xztypzbj #dept_name_multi2").val(s);
+		$("#tc_xztypzbj #dept_name_multi_data2").val(data);
+	    $('#tc_xztypzbj .content2').hide();
+	}
+    $.ajax({
+		type:'post', 
+		url: "{:U('ajax_get_pos')}",
+		data:{dep_id:data},
+		dataType: "json",
+		success: function(result){
+			$(".get_pos").html(result);
+		},
+		error:function(e){
+		}
+	});
+}
+function cancel(obj){
+	$(obj).parent().parent().hide();
+}
+$(function(){
+	//上移
+	$('.lc_ul').on('click','.sy',function(){
+		 var p_node = $(this).parent().parent().parent();
+		 var pnode = p_node.prev().attr('node').trim();
+		//说明已经是第一个了
+		 if(pnode == '0'){
+			 ui_error('无法上移,已经是第一个了！');
+		 	return false;
+		 }else{
+			 var node = p_node.attr('node').trim();
+			 var items = $('.lc_ul').find('li').toArray();
+			 var tmp;
+			 tmp = items[node-1];
+			 items[node-1] = items[node];
+			 items[node] = tmp;
+			 $('.lc_ul').html(items);
+			 bj();
+		 }
+	})
+	//下移
+	$('.lc_ul').on('click','.xy',function(){
+		 var items = $('.lc_ul').find('li').toArray();
+		 var p_node = $(this).parent().parent().parent();
+		 var pnode = p_node.next().attr('node').trim();
+		//说明已经是最后一个了
+		 if(pnode >= items.length-1){
+			 ui_error('无法下移,已经是最后一个了！');
+		 	return false;
+		 }else{
+			 var node = p_node.attr('node').trim();
+			 var node2=parseInt(node)+1,tmp;
+			 tmp = items[node2];
+			 items[node2] = items[node];
+			 items[node] = tmp;
+			 $('.lc_ul').html(items);
+			 bj();
+		 }
+	})
+	$(".lc_top span").parent().css({'background':'#e5e5e5','color':'#333'});
+	$('.lc_head_list .lc_li').eq(0).attr('msg','ok').css({'background':'#4f5f6f','color':'#fff'});
+	$('.lc_con_li').hide().eq(0).show();
+	
+	$('.lc_top').on('click','span',function(){
+		$('.lc_top span').parent().css({'background':'#e5e5e5','color':'#333'});
+		$(this).parent().css({'background':'#4f5f6f','color':'#fff'});
+		$('.lc_top span').parent().attr('msg','');
+		$(this).parent().attr('msg','ok');
+		$('li[class="lc_con_li"]').hide();
+		var n=$('.lc_top span').index(this);
+		$('li[class="lc_con_li"]').eq(n).show();
+	});
+	$('.lc_top').on('click','.mr_gb',function(){
+		var q=$('.mr_gb').index(this);
+		var q1 = $(this).parent().attr('node');
+		$('li[class="lc_con_li"]').each(function(){
+			if($(this).attr('node') == q1){
+				$(this).remove();
+			}
+		});
+		$(this).parent().siblings().css({'background':'#e5e5e5','color':'#333'});
+		$('.lc_li,.mr_tj').css({'background':'#4f5f6f','color':'#fff'});
+		$(this).parent().remove();
+		$('li[class="lc_con_li"]').hide();
+		$('li[class="lc_con_li"]').eq(0).show();
+	});
+})
+</script>
+
+
+
+

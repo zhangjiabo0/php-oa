@@ -1,195 +1,309 @@
 <layout name='Layout/ace_layout' />
-<form method="post" name="form_adv_search" id="form_adv_search">
-	<div class="adv_search panel panel-default "  id="adv_search">
-		<div class="panel-body">
-			<div class="col-sm-3">
-				<label class="col-sm-4 control-label" for="li_user_name">申请编号：</label>
-				<div class="col-sm-8">
-					<input  class="form-control" type="text" id="number" name="number" >
-				</div>
-			</div>
-			<div class="col-sm-3">
-				<label class="col-sm-4 control-label" for="">申请人部门：</label>
-				<div class="col-sm-8">
-					<input class="form-control input-sm" type="text" id="dept_name_multi" name="dept_name_multi" onfocus="$('.content0').show()" readonly>
-					<input type="hidden" id="dept_name_multi_data" name="dept_name_multi_data"/>
-					<div class="content0"> 
-						<div class="top2">
-					        <span class="top_s1">部门选择</span>
-					        <span class="top_s2" id="gb">【关闭】</span>
-					        <span class="top_s2" id="qk">【清空】</span>
-					    </div>
-					    <div class="ss">
-					        <input class="ss_inp1" type="search"/>
-					        <span class="ss_inp2">
-					            <img src="./Public/img/left1.png"/>
-					        </span>
-					    </div>
-						<div class="content1">
-							{$dept_list_new}
-				    	</div>
-					    <div class="bottom2">
-					    	<span class="bottom_s1" id="qd">确定</span>
-					        <span class="bottom_s2" id="qx">取消</span>
-					    </div>
-					</div>
-				</div>
-			</div>
-			<div class="col-sm-3">
-				<label class="col-sm-4 control-label" for="be_date">考勤月份：</label>
-				<div class="col-sm-8" style="width: 62%;">
-					<div class="input-group" >
-						<input type="text" class="input-date-m input-sm form-control text-center" name="be_date" />
-						<span class="input-group-addon">-</span>
-						<input type="text" class="input-date-m input-sm form-control text-center" name="en_date" />
-					</div>
-				</div>
-			</div>
-			<div class="col-sm-3">
-				<a  class="btn btn-sm btn-info" onclick="submit_adv_search();">搜索</a>
-			</div>
-		</div>
-	</div>
-</form>
-<div class="operate panel panel-default">
-	<div class="panel-body" style="background: #BDD3DF;padding: 3px;">
-		<div class="pull-left">
-			<span style="font-weight: bold;color: #000;font-size: 16px;display: block;line-height: 35px;margin-left: 10px;">每月考勤表</span>
-		</div>
-	<div>
-		<a style="float:right" class="btn btn-sm btn-primary" onclick="add()">生成</a>
-		<div class="col-sm-3" style="float:right;">
-				<label class="col-sm-4 control-label" for="">考勤部门：</label>
-				<div class="col-sm-8">
-					<input class="form-control input-sm" type="text" id="dept_name_multi2" name="dept_name_multi2" onfocus="$('.content00').show()" readonly>
-					<input type="hidden" id="dept_name_multi_data2" name="dept_name_multi_data2"/>
-					<div class="content00"> 
-						<div class="top2">
-					        <span class="top_s1">部门选择</span>
-					        <span class="top_s2" id="gb1">【关闭】</span>
-					        <span class="top_s2" id="qk1">【清空】</span>
-					    </div>
-					    <div class="ss">
-					        <input class="ss_inp1" type="search"/>
-					        <span class="ss_inp2">
-					            <img src="./Public/img/left1.png"/>
-					        </span>
-					    </div>
-						<div class="content1" id="content11">
-							{$dept_list_new}
-				    	</div>
-					    <div class="bottom2">
-					    	<span class="bottom_s1" id="qd1">确定</span>
-					        <span class="bottom_s2" id="qx1">取消</span>
-					    </div>
-					</div>
-				</div>
-			</div>
-			<div class="col-sm-3" style="float:right;">
-				<label class="col-sm-4 control-label" for="be_date">考勤月份：</label>
-				<div class="col-sm-8" style="width: 62%;">
-					<div class="input-group" >
-						<input type="text" class="input-date-m input-sm form-control text-center" name="be_date" id="be_date" />
-						
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="pull-right"></div>
-	</div> 
-		<!-- <form method="GET" action="{:U('attendance/new_table')}">
-				<div style="float:right;">
-					考勤部门：<input type="text" name="dept_name">
-					考勤月份：<input type="text" name="atten_month">
-					<input type="hidden" id="dept_name" name="dept_name" value="{$data.dept_name}">
-					<a class="btn btn-sm btn-info" onclick="submit_adv_search();">生成</a>
-				</div>
-			</form>		 -->	
-</div>
-<div class="ul_table">
-	<ul>
-		<li class="thead">
-			<div class="pull-left">
-				<label class="inline pull-left col-3">
-					<input class="ace" type="checkbox" name="id-toggle-all" id="id-toggle-all" />
-					<span class="lbl"></span>
-				</label>
-				<span class="col-10 ">申请编号</span>
-			</div>
-			<div class="pull-left">
-				<span class="col-16 ">申请时间</span>
-			</div>
-			<div class="pull-left">
-				<span class="col-10 ">申请人</span>
-			</div>
-			<div class="pull-left">
-				<span class="col-15 ">申请人部门</span>
-			</div>
-			<div class="pull-left">
-				<span class="col-20 ">考勤月份</span>
-			</div>
-			<div class="pull-right">
-				<span class="col-3 ">操作</span>
-			</div>
-		</li>
-		<empty name="list">
-			<li class="no-data">
-				没找到数据
-			</li>
-			<else/>
-			<form method="post" action="" name="form_data" id="form_data">
-			<foreach name="list" item="vo">
-				<li class="tbody">
-					<div class="pull-left">
-						<label class="inline pull-left col-3">
-							<input class="ace" type="checkbox" name="id[]" value="{$vo.id}" />
-							<span class="lbl"></span>
-						</label>
-						<span class="col-10 ">&nbsp;{$vo.number}</span>
-					</div>
-					<div class="pull-left">
-						<span class="col-16 ">&nbsp;{$vo.create_time|date='Y-m-d H:i:s',###}</span>
-					</div>
-					<div class="pull-left">
-						<span class="col-10 ">&nbsp;{$vo.create_name}</span>
-					</div>
-					<div class="pull-left">
-						<span class="col-15 ">&nbsp;{$vo.dept_name}</span>
-					</div>
-					<div class="pull-left">
-						<span class="col-20 ">&nbsp;<a href="{:U('read_attendance_detail','id='.$vo['id'].'&dept_ids='.$vo['attendance_dept'])}">{$vo.month}</a></span>
-					</div>
-					<div class="pull-right">
-						<span class="col-3 "><a href="{:U('edit_table','id='.$vo['id'].'&dept_ids='.$vo['attendance_dept'])}">编辑</a></span>
-					</div>
-				</li>
-			</foreach>
-			<a class="btn btn-sm btn-danger" onclick="del();">删除</a>
-			</form>
-			<div class="pagination">
-				{$page}
-			</div>
-		</empty>
-	</ul>
-</div>
-<script type="text/javascript">
-$(function() {
-	var html = "<li>人力资源</li><li>考勤管理</li><li>每月考勤表</li>";
-	$("#breadcrumbs ul").append(html);
-});
+<script type="text/javascript" src="__PUBLIC__/js/jquery.validate.js"></script>
+<style>
+*{ font-family:"微软雅黑";}
+a{ text-decoration:none;}
+ul,li{ margin:0; padding:0; list-style:none;}
+body{ margin:0; padding:0; background:#e5e5e5;}
+input,select{ margin:0; padding:0; outline:none;}
 
-function del() {
-	var vars = $("#form_data").serialize();
-	ui_confirm('确定要删除吗?',function(){
-	sendAjax("{:U('del_attendance')}", vars, function(data) {
-	if (data.status) {
-		ui_alert(data.info,function(){
-			$("input[name='id[]']:checkbox:checked").each(function() {
-			$(this).parents("li").remove();
-				});
-			});				
-		}
+
+.zong{ overflow:auto;}
+.top_k{ height:54px; line-height:54px;}
+.top1{ height:54px; background:#fff; line-height:54px; overflow:auto; white-space:nowrap;}
+.top1 span{ display:block; font-size:13px; float:left; margin-left:20px;}
+.top_in{ width:114px; height:24px;border:solid 1px #aaaaaa;}
+.top_button img{ float:left; margin-top:8px; margin-left:16px; margin-right:5px;}
+
+.content_title{ background:#bdd3e0; height:40px; line-height:40px; margin-top:10px; position:relative;}
+.content_sp1{ display:block; position:absolute;width:6px; height:20px; background-color:#20b891; border:solid 1px #3da396;top:10px; border-radius:3px;left:20px;}
+.content_sp2{ display:block; font-size:13px; left:40px; position:absolute;}
+.img_tj{ display:block; float:left; margin-top:14px;}
+.content_sp3{display:block;position:absolute;right:20px;font-size:13px; color:#4c6456; font-weight:bold; cursor:pointer; overflow:hidden;}
+.content_sp3 span{ display:block; float:left;}
+
+.content_t{overflow:auto; float:left; margin-left:1%; width:83%;}
+.content_ul_w{ overflow:auto; min-height:270px; height:100%;}
+.content_li{border-bottom:1px solid #eaedf1; background:#fff; overflow:hidden; height:28px;}
+.content_li span{ display:block; float:left; white-space:nowrap;color:#323232; font-size:13px; height:28px;line-height:28px; text-align:center;}
+.span1_0{ width:30px; font-weight:bold;}
+.span1{ font-weight:bold; width:330px;}
+.span2_0{ width:30px;}
+.span2{ width:330px;}
+.content_a{ display:block; height:28px; line-height:28px;font-size:13px; color:#22bd9b; font-weight:bold; cursor:pointer;}
+
+
+.content_bottom1{ background:#fff; height:30px;}
+.content_bottom2{ background:#fff; height:95px; margin-top:2px; line-height:42px; position:relative;}
+.b1{ margin-left:10px; position:absolute; overflow:hidden;}
+.b1 input{ float:left; margin-top:15px;}
+.b1 span{ display:block; font-size:13px; color:#323232; float:left; margin-left:2px;}
+.b2{ width:32px; height:20px; line-height:20px; border:solid 1px #ced3d7; background:#d0e0e7; color:#323232; float:left; font-size:13px; text-align:center; position:absolute; left:60px; top:11px; cursor:default;}
+.b3{ height:26px; line-height:20px; position:absolute; right:360px; top:11px; border: solid 1px #13b58e;}
+.b3_s1{ font-size:13px; color:#13b58e;}
+.b3_s2{ font-size:13px; color:#323232;}
+
+.b4{ height:20px; line-height:20px; position:absolute; right:280px; top:11px; color:#323232; font-size:13px;}
+.b5{ height:20px; line-height:20px; position:absolute; right:15px; top:11px;}
+.b5_s1{ color:#13b58e; font-size:13px; border: solid 1px #13b58e; padding:0 3px; cursor:pointer;}
+.b5_s3 input{ color:#323232; width:25px; font-size:13px; border: solid 1px #13b58e;}
+.b5_s2{ color:#fff; background:#13b58e;}
+
+.tc{ width:100%; height:100%; position:fixed; top:0; left:0; background:rgba(0,0,0,0.5); display:none; z-index:800;}
+.tc_div{background:#f1f5fa; width:800px; height:400px; position:absolute; left:50%; margin-left:-400px; top:50%; margin-top:-200px; border-radius:5px;}
+.tc_title{ width:100%; height:50px; line-height:50px; overflow:hidden; border-bottom:solid 1px #bdd3e0;}
+.js_sp1{ float:left; display:block; font-size:18px; font-weight:bold; color:#22bd9b; margin-left:50px;}
+
+.tc_div1{background:#f1f5fa; width:400px; height:550px; position:absolute; left:50%; margin-left:-200px; top:50%; margin-top:-300px; border-radius:5px;}
+.tc_ul_div1{ width:300px; height:400px;margin-top:20px; margin-left:50px; overflow:auto;}
+.tc_ul_s{ height:auto;}
+.tc_ul_s li{ overflow:hidden; height:50px; width:100%; line-height:50px;font-size:14px; text-align:center; position:relative;}
+.tc_ul_s label{ position:absolute; left:0;}
+label.error{color:red;font-size:12px;top:22px;left:85px;}
+.tc_ul_s select{ width:195px;position:absolute; left:85px; top:15px;}
+.tc_inp{ width:190px;position:absolute; left:85px; top:15px;}
+
+.bottom_sp3{ display:block; width:80px; height:36px; float:left; background:#475c6f; color:#fff; line-height:36px; text-align:center; font-size:14px; border-radius:3px; margin-left:100px; margin-right:40px; cursor:pointer;}
+.bottom_sp4{ display:block; width:80px; height:36px; float:left; background:#1fb992;color:#fff; line-height:36px; text-align:center; font-size:14px; border-radius:3px;cursor:pointer;}
+
+</style>
+<div class="zong">
+    <div class="top_k">
+    <form method="post" name="form_adv_search" id="form_adv_search">
+        <div class="top1">
+            <span>序列代码：<input class="top_in" type="text" name="li_sequence_number"/></span>
+            <span>序列名称：<input class="top_in" type="text" id="li_sequence_name" name="li_sequence_name"/></span>
+            <!-- <div class="col-sm-3">
+				<a  class="btn btn-sm btn-info" onclick="submit_adv_search();">搜索</a>
+			</div> -->
+			<div class="top_button">
+                <a onclick="submit_adv_search();"><img src="__PUBLIC__/img/cx.png"/></a>
+            </div>
+        </div>
+    </form>
+    </div>   
+   	<div class="content">
+    	<div class="content_title">
+            <span class="content_sp1"></span>
+            <span class="content_sp2">岗位序列</span>
+            <php>if(isAction('position_sequence/add')){</php>
+            <a class="content_sp3" id="a_gltj">
+            	<img class="img_tj" src="__PUBLIC__/img/tj3.png"/>
+            </a><php>}</php>
+        </div>
+        <div class="content_ul_w" id="content_div2">
+            <ul class="content_ul">
+                <li class="content_li">
+                    <span class="span1_0">
+                    
+                    </span>
+                    <span class="span1">序列代码</span>
+                    <span class="span1" style="text-align:left">序列名称</span>
+                    <span class="span1">级别</span>
+                    <span class="span1">操作</span>
+                </li>
+            <empty name="list">
+				<li style="border: 1px solid #eaedf1;border-top: 0px;line-height: 120px;text-align: center;font-size: 24px;">
+					没找到数据
+				</li>
+				<else/>
+				<form method="post" action="" name="form_data_sc" id="form_data_sc">
+                <foreach name="list" item="vo">
+                <li class="content_li">
+                    <span class="span2_0"><input name="id[]" type="checkbox" value="{$vo.id}"/></span>
+                    <span class="span2">{$vo.sequence_number}</span>
+                    <span class="span2" style="text-align:left">{$vo.sequence_name}</span>
+                    <span class="span2">{$vo.sequence_degree}</span>
+                    <span class="span2">
+                    <php>if(isAction('position_sequence/edit_sequence')){</php>
+                   	 <a class="content_a" id="a_glbj" onclick="show('{$vo.id}','{$vo.sequence_number}','{$vo.sequence_name}','{$vo.sequence_degree}');"><input id="bj_{$vo.id}" type="hidden" value="{$vo.id}">编辑</a>
+                    </span>
+                    <php>}</php>
+                </li>
+                </foreach> 
+                </form>
+            </empty>
+            </ul>
+        </div>    
+    </div>
+    
+    <div class="content_bottom">
+    	<!-- <div class="content_bottom1">
+        </div> -->
+        <div class="content_bottom2">
+        <php>if(isAction('position_sequence/del_sequence')){</php>
+        	<div class="b1">
+                <input id="all" type="checkbox"/>
+                <span>全选</span>
+            </div>
+         <div class="b2"><a onclick="del();">删除</a> </div><php>}</php>
+          <div class="pagination" style="float:right;line-height:25px;">
+                {$page}
+          </div>
+            <!-- <div class="b4">
+                <span>每页:</span>
+                <select>
+                    <option>10</option>
+                    <option>20</option>
+                </select>
+            </div>
+            <div class="b5">
+                <span class="b5_s1">1</span>
+                <span class="b5_s1">2</span>
+                <span class="b5_s1">3</span>
+                <span class="b5_s1">4</span>
+                <span class="b5_s1">5</span>
+                <span>...</span>
+                <span class="b5_s1">3788</span>
+                <span class="b5_s1">下一页</span>
+                <span class="b5_s3"><input type="text"/></span>
+                <span class="b5_s1">go</span>
+            </div> -->  
+    </div> 
+</div> 
+
+<div class="tc" id="tc_glbj">
+	<div class="tc_div1">
+    	<div class="tc_title">
+        	<span class="js_sp1" id="bj1">编辑</span>
+        </div>
+        <form method="post" action="" name="form_data_bj" id="form_data_bj">
+        
+        <div class="tc_ul_div1">
+            <ul class="tc_ul_s">
+            	<input type="hidden" id="sequence_id">
+                <li>
+                    <label>序列代码：</label>
+                    <input class="tc_inp" type="text" id="sequence_number" name="sequence_number"/>
+                </li>
+                <li>
+                    <label>序列名称：</label>
+                    <input class="tc_inp" type="text" id="sequence_name" name="sequence_name"/>
+                </li> 
+                <li>
+                    <label>级别：</label>
+                    <input class="tc_inp" type="text" id="sequence_degree" name="sequence_degree"/>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="bottom" style="position:static">
+        	<span class="bottom_sp3">取消</span>
+            <span ><a class="bottom_sp4" onclick="edit();">确定</a>
+            <!-- <input type="submit" value="确定"> -->
+            </span>
+        </div>
+        </form>
+    </div>
+</div>
+<div class="tc" id="tc_gltj">
+	<div class="tc_div1">
+    	<div class="tc_title">
+        	<span class="js_sp1" id="bj1">添加</span>
+        </div>
+        <form name="main_form" id="sequenceForm" method="POST" action="{:U('add')}" enctype="multipart/form-data">
+        <div class="tc_ul_div1">
+            <ul class="tc_ul_s">
+                <li style="height:60px;line-height:60px">
+                    <label>序列代码：</label>
+                    <input class="tc_inp" type="text" name="sequence_number" id="sequence_no"/>
+                </li>
+                <li style="height:60px;line-height:60px">
+                    <label>序列名称：</label>
+                    <input class="tc_inp" type="text" name="sequence_name" id="sequence_na" />
+                </li> 
+                <li style="height:60px;line-height:60px">
+                    <label>级别：</label>
+                    <input class="tc_inp" type="text" name="sequence_degree" id="sequence_de"/>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="bottom" style="position:static">
+        	<span class="bottom_sp3">取消</span>
+            <span ><a class="bottom_sp4" onclick="submitBtn();" href="javascript:void(0);">确定</a></span> 
+             
+        </div>
+        </form>
+    </div>
+</div>
+</form>
+<script type="text/javascript" src="__PUBLIC__/js/gwxl.js"></script>
+
+<script>
+	$(function() {
+		var html = "<li>系统管理</li><li>组织结构管理</li><li>岗位序列</li>";
+		$("#breadcrumbs ul").append(html);
 	});
-});
-	}
+	
+	function JqValidate()  
+	{  
+	    return $( '#sequenceForm' ).validate({  
+	    	//errorElement : 'span',
+	    	onkeyup:false,
+	    	rules:{  
+	    		sequence_number : {
+					required : true,
+					remote : {
+						url : "{:U('checkNo')}",
+						type : 'post',
+						dataType : 'json',
+						data : {
+							sequence_number : function () {
+								return $('#sequence_no').val();
+							}
+						}
+					}
+				},
+				sequence_name : {
+					required : true,
+					remote : {
+						url : "{:U('checkName')}",
+						type : 'post',
+						dataType : 'json',
+						data : {
+							sequence_name : function () {
+								return $('#sequence_na').val();
+							}
+						}
+					}
+				},  
+				sequence_degree : {
+					required : true,
+					remote : {
+						url : "{:U('checkDegree')}",
+						type : 'post',
+						dataType : 'json',
+						data : {
+							sequence_degree : function () {
+								return $('#sequence_de').val();
+							}
+						}
+					}
+				}
+	            },  
+	        messages:{  
+	        	sequence_number : {
+					required : '序列代码不能为空',
+					remote : '序列代码已存在'
+				}, 
+				sequence_name : {
+					required : '序列名称不能为空',
+					remote : '序列名称已存在'
+				},
+				sequence_degree : {
+					required : '级别不能为空',
+					remote : '级别已存在'
+				}
+	            }
+	    });  
+	}  
+	  
+	function submitBtn()  
+	{  
+	     if( JqValidate() ){    
+	         $( '#sequenceForm' ).submit();  
+	     }  
+	} 
 </script>
+

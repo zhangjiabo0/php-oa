@@ -1,0 +1,61 @@
+<layout name='Layout/ace_layout' />
+<link type="text/css" href="__PUBLIC__/css/spllb.css" rel="stylesheet"/>
+<script type="text/javascript" src="__PUBLIC__/js/jquery-1.12.3.min.js"></script>
+
+<div class="zong">
+	<div class="top_k">
+	<form method="post" name="form_adv_search" id="form_adv_search">
+        <div class="top1">
+            <span>表单名称：<input name="li_module_name" class="top_in"/></span>
+
+            <div class="top_button">
+                <a onclick="submit_adv_search();"><img src="__PUBLIC__/img/cx.png"/></a>
+            </div>
+        </div>
+        </form>
+    </div>
+	<div class="content">
+    	<div class="content_title">
+            <span class="content_sp1"></span>
+            <span class="content_sp2">表单名称</span>
+            <span class="content_sp4">配置</span>
+              
+        </div>
+        <div class="content_ul_w" id="content_div2">
+            <ul class="content_ul">
+			<empty name="list">
+				<li style="border: 1px solid #eaedf1;border-top: 0px;text-align: center;font-size: 24px;">
+					没找到数据
+				</li>
+			<else/>
+			<form method="post" action="" name="form_data_scwf" id="form_data_scwf">
+            <foreach name="list" item="vo">
+                <li class="content_li">
+                    <span class="span2_0"><input name="id[]" type="checkbox" value="{$vo.id}"/></span>
+                    <span class="span2">{$vo.flow_name}</span>
+                    <span class="span2"><a class="content_a" href="{:U('company_config/index?fid='.$vo['id'])}">公司通用配置</a></span>
+                    <span class="span2"><a class="content_a" href="{:U('position_config/index?fid='.$vo['id'])}">岗位特殊配置</a></span>
+                </li>
+            </foreach>
+            </form>
+            </empty>
+            </ul>
+        </div> 
+        <div class="content_bottom">
+			<div class="content_bottom1"></div>
+			<div class="content_bottom2">
+				<div class="b1">
+					<input id="all" type="checkbox"/>
+					<span>全选</span>
+				</div>
+
+				<div class="b2"><a onclick="del();">删除</a></div>
+				<div class="pagination" style="float:right;line-height:25px;">
+             	{$page}
+        		</div>
+			</div>
+		</div>     
+    </div>
+</div>
+
+
