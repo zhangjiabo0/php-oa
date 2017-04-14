@@ -25,9 +25,6 @@ class CommonAction extends Action {
 				$this -> _welogin($code);
 			}
 		}
-		$open=fopen("C:\log.txt","a" );
-		fwrite($open,'1'."\r\n");
-		fclose($open);
 		
 		if(is_mobile_request()){//手机端
 			$id = $_REQUEST['id'];
