@@ -9,3 +9,4 @@ return array(
         'DB_PORT'=>'3306',
         'DB_PREFIX'=>'smeoa_',
     );
+ 
